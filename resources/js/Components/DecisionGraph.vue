@@ -1,10 +1,66 @@
 <script setup lang="ts">
 import type { DecisionGraphData, StatusTone } from '@/types';
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 const props = defineProps<{
     graph: DecisionGraphData;
 }>();
+
+/**
+ * The canvas is a fixed 1000×700, but this panel is as tall as whatever sits
+ * beside it. Fitting the whole canvas with `meet` therefore letterboxed the
+ * drawing — on a 1440×900 laptop it left roughly 180px of dead space inside
+ * the panel.
+ *
+ * Instead, fit the box the drawing actually occupies (`graph.bounds`) and grow
+ * it on whichever axis the panel has to spare. The result always fills the
+ * panel, is never stretched (both axes keep one scale) and can never crop,
+ * because the window only ever grows beyond the content.
+ */
+const frame = ref<HTMLElement | null>(null);
+const frameRatio = ref<number | null>(null);
+
+let observer: ResizeObserver | undefined;
+
+const measure = (): void => {
+    const box = frame.value?.getBoundingClientRect();
+
+    frameRatio.value = box && box.width > 0 && box.height > 0 ? box.width / box.height : null;
+};
+
+onMounted(() => {
+    measure();
+
+    if (typeof ResizeObserver === 'undefined' || frame.value === null) {
+        return;
+    }
+
+    observer = new ResizeObserver(measure);
+    observer.observe(frame.value);
+});
+
+onBeforeUnmount(() => observer?.disconnect());
+
+const viewBox = computed(() => {
+    const { x, y, width, height } = props.graph.bounds;
+    const ratio = frameRatio.value;
+
+    // Before the first measurement, fall back to the content box itself.
+    if (ratio === null || !Number.isFinite(ratio) || width <= 0 || height <= 0) {
+        return `${x} ${y} ${width} ${height}`;
+    }
+
+    if (ratio > width / height) {
+        // Panel is wider than the drawing: widen the window, keep the height.
+        const grown = height * ratio;
+
+        return `${x - (grown - width) / 2} ${y} ${grown} ${height}`;
+    }
+
+    const grown = width / ratio;
+
+    return `${x} ${y - (grown - height) / 2} ${width} ${grown}`;
+});
 
 /** Resolves against the `.tone-vars` custom properties declared in app.css. */
 const TONE_VAR: Record<StatusTone, string> = {
@@ -51,9 +107,9 @@ const callout = computed(() => props.graph.callout);
             </ul>
         </header>
 
-        <div class="relative mt-3 min-h-0 flex-1">
+        <div ref="frame" class="relative mt-3 min-h-0 flex-1">
             <svg
-                :viewBox="`0 0 ${graph.width} ${graph.height}`"
+                :viewBox="viewBox"
                 class="tone-vars h-full w-full"
                 preserveAspectRatio="xMidYMid meet"
                 role="img"

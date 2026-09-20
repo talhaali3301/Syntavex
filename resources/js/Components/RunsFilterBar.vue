@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RunsFilters, StatusChip, WorkflowOption } from '@/types';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
     filters: RunsFilters;
@@ -18,6 +18,16 @@ const datesOpen = ref(false);
 const moreOpen = ref(false);
 const from = ref(props.filters.from);
 const to = ref(props.filters.to);
+
+// The range can change without this popover being touched — "Widen to 90 days"
+// on the empty state, or CLEAR — so the inputs follow the server's answer.
+watch(
+    () => [props.filters.from, props.filters.to] as const,
+    ([nextFrom, nextTo]) => {
+        from.value = nextFrom;
+        to.value = nextTo;
+    },
+);
 
 const CHIP_ACTIVE: Record<string, string> = {
     accent: 'bg-gradient-to-br from-[#7DEDF0] to-accent-cyan text-[#061020] shadow-[0_0_20px_rgba(45,226,230,0.35)]',
@@ -182,7 +192,7 @@ const applyDates = (): void => {
         <div class="ml-auto flex items-center gap-3">
             <p class="font-mono text-[11.5px] text-ink-600">
                 Showing <span class="font-medium text-ink-100">{{ showing.filtered }}</span>
-                of {{ showing.total }} runs
+                of {{ showing.total }} run{{ showing.total === 1 ? '' : 's' }}
             </p>
             <button
                 type="button"

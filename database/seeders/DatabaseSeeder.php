@@ -210,7 +210,7 @@ class DatabaseSeeder extends Seeder
         $createdAt = $spec['created_at'];
 
         $steps = match ($spec['scenario']) {
-            'flagship' => $this->flagshipSteps(),
+            'flagship' => $this->flagshipSteps($createdAt),
             'goodwill_no_ticket' => $this->goodwillSteps(),
             'low_confidence_downgrade' => $this->lowConfidenceSteps(),
             default => $this->generatedSteps($spec['workflow'], $spec['status'], $spec['error_message']),
@@ -268,10 +268,16 @@ class DatabaseSeeder extends Seeder
     /**
      * Run #8421 — the refund that breached the automated approval ceiling.
      *
+     * The outage date in the agent's rationale is derived from the run's own
+     * timestamp rather than written in by hand, so the narrative still lines up
+     * with the dates on screen whenever the dataset is reseeded.
+     *
      * @return list<array<string, mixed>>
      */
-    private function flagshipSteps(): array
+    private function flagshipSteps(Carbon $runAt): array
     {
+        $outageDate = $runAt->copy()->subDay()->toDateString();
+
         return [
             $this->step('Zendesk refund request received', 'webhook', 'completed', 312, null,
                 ['source' => 'zendesk.webhook', 'ticket_id' => 'ZD-40219', 'event' => 'refund.requested'],
@@ -300,7 +306,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'confidence' => 0.94,
                     'decision' => 'approve',
-                    'rationale' => 'Verified 47-minute platform outage on 2026-09-18 affecting this account. Enterprise tier with low churn risk and a clean refund history; goodwill credit is proportionate to the SLA breach.',
+                    'rationale' => 'Verified 47-minute platform outage on '.$outageDate.' affecting this account. Enterprise tier with low churn risk and a clean refund history; goodwill credit is proportionate to the SLA breach.',
                     'drafted_apology' => "Hi Dana — you're right, and I'm sorry. Our API was unavailable for 47 minutes yesterday, which is squarely on us and well outside the uptime we commit to on your Enterprise plan. I've put through a $120 credit to cover the affected window; it should land on your next invoice. The root cause has been fixed and I'm happy to share the incident write-up if useful.",
                     'policy_references' => ['refund-policy-v4 §3.2', 'sla-enterprise §1.4'],
                 ],

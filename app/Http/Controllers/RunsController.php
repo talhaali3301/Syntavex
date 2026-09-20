@@ -73,17 +73,21 @@ class RunsController extends Controller
             ->selectRaw('AVG(total_duration_ms) as avg_duration_ms')
             ->first();
 
-        // Rolling spend over the COST_WINDOW_DAYS ending at the anchor, in the
-        // mockup's "$x / <window>" framing. Anchored like every other window on
-        // this screen so it stays meaningful on seeded data: the seed averages
-        // ~3 runs/day, so a 24h slice would often hold a single run.
+        // Rolling spend over the COST_WINDOW_DAYS ending at the *selected*
+        // range's end, in the mockup's "$x / <window>" framing. Hanging it off
+        // the visible range rather than the global anchor keeps it truthful
+        // when the user scrolls back to a historic window — anchoring it
+        // globally made every past range read "$0.00 / 3d". The window is days
+        // rather than hours because the seed averages ~3 runs/day, so a 24h
+        // slice would often hold a single run.
         $costWindow = (float) (clone $filtered)
-            ->where('workflow_runs.created_at', '>=', $filters['anchor']->copy()->subDays(self::COST_WINDOW_DAYS))
+            ->where('workflow_runs.created_at', '>=', $filters['to']->copy()->subDays(self::COST_WINDOW_DAYS))
             ->sum('total_cost_usd');
 
         $runs = (clone $filtered)
             ->with(['workflow', 'steps', 'auditEvents', 'approvalRequests'])
             ->orderByDesc('workflow_runs.created_at')
+            ->orderByDesc('workflow_runs.id')
             ->paginate(self::PER_PAGE)
             ->withQueryString();
 
@@ -105,31 +109,19 @@ class RunsController extends Controller
                 'is_default' => $filters['is_default'],
             ],
             'statusChips' => $this->statusChips($scopeTotal, $statusCounts),
-            'distribution' => $this->distribution($scopeTotal, $statusCounts, $stats, $costWindow),
+            'distribution' => $this->distribution(
+                $scopeTotal,
+                $statusCounts,
+                $stats,
+                $costWindow,
+                $this->rangeDays($filters),
+            ),
             'volume' => $this->volume($workflowIds, $filters),
             'runs' => $rows,
             'pagination' => $this->pagination($runs),
             'workflowOptions' => $this->workflowOptions($workflowIds),
             'expandedRunId' => $this->flagshipRunId($rows),
             'showing' => ['filtered' => $runs->total(), 'total' => $rangeTotal],
-        ]);
-    }
-
-    /**
-     * Placeholder target for "Open Run Inspector". The real inspector is
-     * Phase 5; this exists so the link and route resolve today.
-     */
-    public function show(WorkflowRun $run): Response
-    {
-        $run->load('workflow');
-
-        return Inertia::render('Runs/Show', [
-            'run' => [
-                'id' => $run->id,
-                'run_key' => $run->run_key,
-                'workflow' => $run->workflow?->name,
-                'status' => $run->status,
-            ],
         ]);
     }
 
@@ -157,8 +149,11 @@ class RunsController extends Controller
                 'duration_ms', 'tokens', 'cost_usd', 'error_message',
             ]);
 
+            // id breaks ties on created_at so chunking can never skip or
+            // repeat a row when two runs share a timestamp.
             $query->with('workflow')
                 ->orderByDesc('workflow_runs.created_at')
+                ->orderByDesc('workflow_runs.id')
                 ->chunk(200, function (Collection $chunk) use ($handle): void {
                     foreach ($chunk as $run) {
                         fputcsv($handle, [
@@ -198,7 +193,10 @@ class RunsController extends Controller
             [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
         }
 
-        $status = (string) $request->query('status', 'all');
+        // query() hands back an array for `?status[]=x`; only a scalar is
+        // ever a valid filter, so anything else falls back to the default.
+        $status = $request->query('status', 'all');
+        $status = is_string($status) ? $status : 'all';
 
         if (! in_array($status, [...self::STATUSES, 'all'], true)) {
             $status = 'all';
@@ -209,7 +207,8 @@ class RunsController extends Controller
             ? (int) $workflow
             : null;
 
-        $search = trim((string) $request->query('search', ''));
+        $search = $request->query('search', '');
+        $search = is_string($search) ? trim($search) : '';
 
         return [
             'status' => $status,
@@ -234,6 +233,17 @@ class RunsController extends Controller
             ->max('created_at');
 
         return $latest === null ? now() : Carbon::parse($latest);
+    }
+
+    /**
+     * Inclusive width of the selected date range, in days.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function rangeDays(array $filters): int
+    {
+        return (int) $filters['from']->copy()->startOfDay()
+            ->diffInDays($filters['to']->copy()->startOfDay()) + 1;
     }
 
     private function parseDate(mixed $value): ?Carbon
@@ -326,10 +336,16 @@ class RunsController extends Controller
      * on the right of the strip.
      *
      * @param  array<string, int>  $counts
+     * @param  int  $rangeDays  Width of the selected date range, in days.
      * @return array<string, mixed>
      */
-    private function distribution(int $scopeTotal, array $counts, mixed $stats, float $costWindow): array
-    {
+    private function distribution(
+        int $scopeTotal,
+        array $counts,
+        mixed $stats,
+        float $costWindow,
+        int $rangeDays,
+    ): array {
         $segments = [];
 
         foreach (self::STATUSES as $status) {
@@ -349,7 +365,16 @@ class RunsController extends Controller
 
         return [
             'total' => $scopeTotal,
-            'window_days' => self::WINDOW_DAYS,
+            // The width of the range actually in view, not the default window —
+            // otherwise widening to 90 days still read "N runs · 14 days".
+            'window_days' => $rangeDays,
+            'scope_label' => sprintf(
+                '%d run%s · %d day%s',
+                $scopeTotal,
+                $scopeTotal === 1 ? '' : 's',
+                $rangeDays,
+                $rangeDays === 1 ? '' : 's',
+            ),
             'success_rate' => round($successRate, 1),
             'success_label' => number_format($successRate, 1).'% success',
             'segments' => $segments,

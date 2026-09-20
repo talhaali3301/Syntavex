@@ -38,7 +38,7 @@ const DOT: Record<StatusTone, string> = {
                 STATUS DISTRIBUTION
             </h2>
             <p class="font-mono text-[10.5px] text-ink-600">
-                {{ distribution.total }} runs · {{ distribution.window_days }} days
+                {{ distribution.scope_label }}
             </p>
             <p class="ml-auto font-mono text-[11px] font-medium text-glow-green">
                 {{ distribution.success_label }}

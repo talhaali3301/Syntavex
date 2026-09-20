@@ -53,7 +53,7 @@ const DOT: Record<StatusTone, string> = {
             <div>
                 <h2 id="recent-runs-heading" class="panel-heading">Recent Runs</h2>
                 <p class="mt-0.5 text-xs text-white/40">
-                    Latest {{ runs.length }} executions across the fleet
+                    Latest {{ runs.length }} execution{{ runs.length === 1 ? '' : 's' }} across the fleet
                 </p>
             </div>
 

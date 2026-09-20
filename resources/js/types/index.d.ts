@@ -33,6 +33,8 @@ export interface Workspace {
 }
 
 export interface KpiMetric {
+    /** Card heading, authored server-side so it can track the selected range. */
+    label: string;
     value: number;
     display: string;
     caption: string;
@@ -42,7 +44,23 @@ export interface DashboardKpis {
     total_executions: KpiMetric;
     success_rate: KpiMetric;
     avg_latency: KpiMetric;
-    cost_24h: KpiMetric;
+    cost_window: KpiMetric;
+}
+
+export type DashboardRangeKey = '24h' | '7d' | '14d' | '30d';
+
+export interface DashboardRangeOption {
+    key: DashboardRangeKey;
+    label: string;
+}
+
+export interface DashboardRange {
+    key: DashboardRangeKey;
+    label: string;
+    days: number;
+    /** The newest run every window is measured back from. */
+    anchor_label: string;
+    options: DashboardRangeOption[];
 }
 
 export interface FleetTrustComponent {
@@ -155,9 +173,18 @@ export interface DecisionGraphLegendItem {
     count: number;
 }
 
+/** The box the drawing occupies, in canvas units — labels included. */
+export interface DecisionGraphBounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export interface DecisionGraphData {
     width: number;
     height: number;
+    bounds: DecisionGraphBounds;
     clusters: DecisionGraphCluster[];
     links: DecisionGraphLink[];
     callout: DecisionGraphCallout | null;
@@ -179,6 +206,7 @@ export interface GovernanceLedgerData {
 
 export interface CommandCentreProps {
     workspace: Workspace;
+    range: DashboardRange;
     kpis: DashboardKpis;
     fleetTrust: FleetTrust;
     humanAttention: ApprovalRequestSummary[];
@@ -223,6 +251,8 @@ export interface DistributionSegment {
 export interface DistributionData {
     total: number;
     window_days: number;
+    /** "34 runs · 14 days", pluralised server-side. */
+    scope_label: string;
     success_rate: number;
     success_label: string;
     segments: DistributionSegment[];
@@ -341,4 +371,179 @@ export interface RunsExplorerProps {
     workflowOptions: WorkflowOption[];
     expandedRunId: number | null;
     showing: { filtered: number; total: number };
+}
+
+/* -------------------------------------------------------------------------
+ * Run Inspector
+ * ---------------------------------------------------------------------- */
+
+export type TraceTone =
+    | 'reasoning'
+    | 'tool'
+    | 'policy'
+    | 'critical'
+    | 'review'
+    | 'idle';
+
+export type LineTone = 'ink' | 'ok' | 'warn' | 'critical';
+
+export interface TraceNode {
+    id: number;
+    order: number;
+    order_label: string;
+    name: string;
+    type: string;
+    status: string;
+    tone: TraceTone;
+    duration_label: string;
+    selected: boolean;
+}
+
+export interface ExecutionTrace {
+    summary: string;
+    nodes: TraceNode[];
+}
+
+export interface ReasoningLine {
+    label: string;
+    text: string;
+    tone: LineTone;
+}
+
+export interface ReasoningEntry {
+    id: number;
+    order_label: string;
+    time: string | null;
+    type: string;
+    name: string;
+    tone: TraceTone;
+    lines: ReasoningLine[];
+}
+
+export interface ReasoningTimeline {
+    title: string;
+    meta: string;
+    entries: ReasoningEntry[];
+    /** The run stopped mid-flight, so the trace has no closing line. */
+    open: boolean;
+}
+
+export interface ToolCall {
+    id: number;
+    order_label: string;
+    name: string;
+    kind: string;
+    status: string;
+    status_label: string;
+    tone: TraceTone;
+    input: string;
+    output: string | null;
+    duration_label: string;
+    cost_label: string;
+}
+
+export interface ToolCalls {
+    summary: string;
+    note: string | null;
+    items: ToolCall[];
+}
+
+export interface InspectorRisk {
+    level: RiskLevel;
+    level_label: string;
+    score: number;
+    score_label: string;
+    percent: number;
+    tone: StatusTone;
+}
+
+export interface DecisionConfidence {
+    value: number;
+    label: string;
+    percent: number;
+    threshold_label: string;
+    verdict: 'clear' | 'below';
+}
+
+export interface PolicyBreach {
+    rule: string;
+    summary: string;
+}
+
+export interface PolicyEvaluation {
+    tier: string | null;
+    risk: InspectorRisk | null;
+    confidence: DecisionConfidence | null;
+    breach: PolicyBreach | null;
+    counts: { passed: number; breached: number; skipped: number };
+    clear_label: string;
+}
+
+export interface DecisionResolution {
+    status: string;
+    by: string | null;
+    at: string | null;
+    notes: string | null;
+}
+
+export interface DecisionRecord {
+    eyebrow: string;
+    headline: string;
+    detail: string;
+    pending: boolean;
+    resolution: DecisionResolution | null;
+}
+
+export interface MetadataRow {
+    label: string;
+    value: string | null;
+    href?: string | null;
+    tone: 'ink' | 'accent';
+}
+
+export interface RelatedRun {
+    id: number;
+    run_key: string;
+    label: string;
+    relation: string;
+    tone: StatusTone;
+}
+
+export interface HeaderStat {
+    label: string;
+    value: string;
+    caption: string | null;
+    tone: 'ink' | 'accent';
+}
+
+export interface InspectorRun {
+    id: number;
+    run_key: string;
+    status: RunStatus;
+    status_label: string;
+    tone: StatusTone;
+    objective: string;
+    agent: string;
+    model: string | null;
+    error_message: string | null;
+    workflow: {
+        id: number | null;
+        name: string | null;
+        slug: string | null;
+        trigger_type: string | null;
+    };
+    workspace: { name: string | null; slug: string | null; tier: string | null };
+    trace: ExecutionTrace;
+    reasoning: ReasoningTimeline;
+    toolCalls: ToolCalls;
+    policy: PolicyEvaluation;
+    decision: DecisionRecord;
+    metadata: MetadataRow[];
+    audit: { count: number; label: string };
+}
+
+export interface RunInspectorProps {
+    run: InspectorRun;
+    header: HeaderStat[];
+    related: RelatedRun[];
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ApprovalRequestSummary, StatusTone } from '@/types';
+import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const props = defineProps<{
@@ -67,15 +68,22 @@ const edgeClass = computed(() => EDGE[props.item.tone] ?? EDGE.info);
         </dl>
 
         <div class="mt-3 flex items-center gap-2">
-            <button
-                type="button"
+            <!-- Opens the run behind the approval; the Review Queue desk that
+                 resolves it in place is not built yet, so Escalate is marked
+                 unavailable rather than left as a button that does nothing. -->
+            <Link
+                v-if="item.run_id !== null"
+                :href="`/runs/${item.run_id}`"
                 class="rounded-lg border border-accent-cyan/40 bg-accent-cyan/10 px-3 py-1.5 text-xs font-semibold text-accent-cyan transition duration-200 hover:border-accent-cyan/70 hover:bg-accent-cyan/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
+                :aria-label="`Review run ${item.run_key}`"
             >
                 Review
-            </button>
+            </Link>
             <button
                 type="button"
-                class="rounded-lg border border-white/[0.12] px-3 py-1.5 text-xs font-semibold text-white/65 transition duration-200 hover:border-white/25 hover:bg-white/5 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
+                disabled
+                title="Escalation routing arrives with the Review Queue"
+                class="cursor-not-allowed rounded-lg border border-white/[0.12] px-3 py-1.5 text-xs font-semibold text-white/35"
             >
                 Escalate
             </button>

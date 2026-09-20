@@ -5,14 +5,16 @@ import { computed } from 'vue';
 type NavItem = {
     label: string;
     href?: string;
+    /** Shown on hover for the rail items that have no screen behind them yet. */
+    note?: string;
 };
 
 /** Order follows the mockup rail: grid, pulse, graph, shield, queue. */
 const navItems: NavItem[] = [
     { label: 'Command Centre', href: '/dashboard' },
     { label: 'Runs', href: '/runs' },
-    { label: 'Telemetry' },
-    { label: 'Approvals' },
+    { label: 'Telemetry', note: 'Telemetry — not built yet' },
+    { label: 'Approvals', note: 'Approvals — not built yet' },
     { label: 'Review Queue', href: '/reviews' },
 ];
 
@@ -52,14 +54,17 @@ const initials = computed(() => {
 });
 
 const TILE =
-    'relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-transparent text-ink-600 transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base';
+    'relative flex h-11 w-11 items-center justify-center rounded-xl border border-transparent text-ink-600 transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base';
 
 const LINKED =
-    'hover:border-[#A0CDF5]/[0.16] hover:bg-[#A0CDF5]/[0.08] hover:text-ink-300';
+    'cursor-pointer hover:border-[#A0CDF5]/[0.16] hover:bg-[#A0CDF5]/[0.08] hover:text-ink-300';
 
-/** Telemetry and Approvals have no route yet, so their hover stays deliberately weaker. */
-const UNLINKED =
-    'hover:border-[#A0CDF5]/[0.10] hover:bg-[#A0CDF5]/[0.04] hover:text-ink-500';
+/**
+ * Telemetry, Approvals and Settings have no screen behind them yet. They keep
+ * their place in the rail (the mockup's shape) but read as unavailable rather
+ * than as buttons that silently do nothing.
+ */
+const UNLINKED = 'cursor-not-allowed text-ink-900';
 
 /** Mockup active tile: cyan wash, cyan hairline border and an inner cyan bloom. */
 const ACTIVE =
@@ -129,7 +134,9 @@ const classesFor = (item: NavItem): string => {
                     :key="item.label"
                     :href="item.href"
                     :type="item.href ? undefined : 'button'"
-                    :aria-label="item.label"
+                    :disabled="item.href ? undefined : true"
+                    :title="item.note"
+                    :aria-label="item.note ?? item.label"
                     :aria-current="currentLabel === item.label ? 'page' : undefined"
                     :class="classesFor(item)"
                 >
@@ -211,7 +218,13 @@ const classesFor = (item: NavItem): string => {
 
             <div class="flex-1" />
 
-            <button type="button" aria-label="Settings" :class="`${TILE} ${UNLINKED}`">
+            <button
+                type="button"
+                disabled
+                title="Settings — not built yet"
+                aria-label="Settings — not built yet"
+                :class="`${TILE} ${UNLINKED}`"
+            >
                 <svg
                     class="h-[19px] w-[19px]"
                     viewBox="0 0 24 24"

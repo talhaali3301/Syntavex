@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RunInspectorController;
 use App\Http\Controllers\RunsController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -26,8 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Declared before the wildcard so "export" is never read as a run id.
     Route::get('/runs/export', [RunsController::class, 'export'])->name('runs.export');
 
-    // Placeholder until the Run Inspector lands in Phase 5.
-    Route::get('/runs/{run}', [RunsController::class, 'show'])
+    Route::get('/runs/{run}', [RunInspectorController::class, 'show'])
         ->whereNumber('run')
         ->name('runs.show');
 

@@ -10,6 +10,8 @@ use App\Models\RunStep;
 use App\Models\Workflow;
 use App\Models\WorkflowRun;
 use App\Models\Workspace;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,6 +21,10 @@ use Inertia\Response;
  *
  * Every figure on this screen is derived from the workspace's own runs —
  * nothing on the page is hardcoded.
+ *
+ * Every window is measured back from the newest run in the workspace rather
+ * than wall-clock now(), so the screen keeps its shape whenever the seeded
+ * dataset is demoed instead of silently decaying to zero.
  */
 class DashboardController extends Controller
 {
@@ -40,8 +46,10 @@ class DashboardController extends Controller
 
     private const GRAPH_HEIGHT = 700;
 
-    /** Severity ordering used to pick the most urgent pending approval. */
-    private const RISK_WEIGHTS = ['critical' => 3, 'high' => 2, 'medium' => 1, 'low' => 0];
+    /** Room the cluster name and the flagged run key need outside a ring. */
+    private const GRAPH_LABEL_ABOVE = 28;
+
+    private const GRAPH_LABEL_BELOW = 24;
 
     private const STATUS_TONES = [
         'completed' => 'completed',
@@ -50,7 +58,22 @@ class DashboardController extends Controller
         'running' => 'info',
     ];
 
-    public function index(): Response
+    /**
+     * Selectable observation windows, measured back from the newest run.
+     * `cost_label` is the heading the spend KPI carries for that window.
+     *
+     * @var array<string, array{label: string, days: int, cost_label: string}>
+     */
+    private const RANGES = [
+        '24h' => ['label' => 'Last 24 hours', 'days' => 1, 'cost_label' => '24h AI Cost'],
+        '7d' => ['label' => 'Last 7 days', 'days' => 7, 'cost_label' => '7d AI Cost'],
+        '14d' => ['label' => 'Last 14 days', 'days' => 14, 'cost_label' => '14d AI Cost'],
+        '30d' => ['label' => 'Last 30 days', 'days' => 30, 'cost_label' => '30d AI Cost'],
+    ];
+
+    private const DEFAULT_RANGE = '14d';
+
+    public function index(Request $request): Response
     {
         $workspace = Workspace::query()->orderBy('id')->firstOrFail();
 
@@ -58,13 +81,24 @@ class DashboardController extends Controller
         $workflows = $workspace->workflows()->orderBy('id')->get();
         $workflowIds = $workflows->pluck('id')->all();
 
+        $range = $this->range($request);
+        $anchor = $this->anchorDate($workflowIds);
+        $since = $anchor->copy()->subDays($range['days']);
+
         /** @var Collection<int, WorkflowRun> $runs */
         $runs = WorkflowRun::query()
             ->whereIn('workflow_id', $workflowIds)
+            ->whereBetween('created_at', [$since, $anchor])
             ->orderByDesc('created_at')
             ->get();
 
+        // Pending approvals are current state, not history: they stay in view
+        // however far back the window reaches. The graph may only *flag* one
+        // whose run is actually on screen, though.
         $topApproval = $this->mostUrgentPendingApproval($workflowIds);
+        $graphApproval = $topApproval !== null && $runs->contains('id', $topApproval->workflow_run_id)
+            ? $topApproval
+            : null;
 
         return Inertia::render('Dashboard/Index', [
             'workspace' => [
@@ -74,27 +108,78 @@ class DashboardController extends Controller
                 'workflow_count' => $workflows->count(),
                 'active_workflow_count' => $workflows->where('is_active', true)->count(),
             ],
-            'kpis' => $this->kpis($workflowIds, $runs),
+            'range' => [
+                'key' => $range['key'],
+                'label' => $range['label'],
+                'days' => $range['days'],
+                'anchor_label' => $anchor->format('M j · H:i'),
+                'options' => $this->rangeOptions(),
+            ],
+            'kpis' => $this->kpis($runs, $range),
             'fleetTrust' => $this->fleetTrust($runs),
             'humanAttention' => ApprovalRequestResource::collection(
                 $this->pendingApprovals($workflowIds)
             )->resolve(),
             'recentRuns' => RunListResource::collection(
-                $this->recentRuns($workflowIds)
+                $this->recentRuns($runs)
             )->resolve(),
-            'decisionGraph' => $this->decisionGraph($workflows, $runs, $topApproval),
+            'decisionGraph' => $this->decisionGraph($workflows, $runs, $graphApproval),
             'governanceLedger' => $this->governanceLedger($workspace->id, $workflowIds),
         ]);
     }
 
     /**
-     * Headline KPI row: volume, reliability, latency and recent spend.
+     * The selected observation window, falling back to the default when the
+     * query string names one that does not exist.
+     *
+     * @return array{key: string, label: string, days: int, cost_label: string}
+     */
+    private function range(Request $request): array
+    {
+        $key = $request->query('range');
+        $key = is_string($key) && isset(self::RANGES[$key]) ? $key : self::DEFAULT_RANGE;
+
+        return [...self::RANGES[$key], 'key' => $key];
+    }
+
+    /**
+     * @return array<int, array{key: string, label: string}>
+     */
+    private function rangeOptions(): array
+    {
+        $options = [];
+
+        foreach (self::RANGES as $key => $range) {
+            $options[] = ['key' => $key, 'label' => $range['label']];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Newest run in the workspace — the point every window is measured back
+     * from. Falls back to now() only when the workspace has no runs at all.
      *
      * @param  array<int, int>  $workflowIds
+     */
+    private function anchorDate(array $workflowIds): Carbon
+    {
+        $latest = WorkflowRun::query()
+            ->whereIn('workflow_id', $workflowIds)
+            ->max('created_at');
+
+        return $latest === null ? now() : Carbon::parse($latest);
+    }
+
+    /**
+     * Headline KPI row: volume, reliability, latency and spend across the
+     * selected window.
+     *
      * @param  Collection<int, WorkflowRun>  $runs
+     * @param  array{key: string, label: string, days: int, cost_label: string}  $range
      * @return array<string, mixed>
      */
-    private function kpis(array $workflowIds, Collection $runs): array
+    private function kpis(Collection $runs, array $range): array
     {
         $total = $runs->count();
         $completed = $runs->where('status', 'completed')->count();
@@ -103,30 +188,34 @@ class DashboardController extends Controller
 
         $successRate = $total > 0 ? ($completed / $total) * 100 : 0.0;
         $avgLatencySeconds = $total > 0 ? $runs->avg('total_duration_ms') / 1000 : 0.0;
+        $spend = (float) $runs->sum('total_cost_usd');
 
-        $since = now()->subDay();
-        $recent = $runs->filter(fn (WorkflowRun $run): bool => $run->created_at?->greaterThanOrEqualTo($since) ?? false);
+        $windowCaption = strtolower($range['label']);
 
         return [
             'total_executions' => [
+                'label' => 'Total Executions',
                 'value' => $total,
                 'display' => number_format($total),
                 'caption' => $failed.' failed · '.$needsReview.' in review',
             ],
             'success_rate' => [
+                'label' => 'Success Rate',
                 'value' => round($successRate, 1),
-                'display' => number_format($successRate, 1).'%',
+                'display' => $total === 0 ? '—' : number_format($successRate, 1).'%',
                 'caption' => $completed.' of '.$total.' runs clean',
             ],
             'avg_latency' => [
+                'label' => 'Avg Latency',
                 'value' => round($avgLatencySeconds, 2),
-                'display' => number_format($avgLatencySeconds, 2).'s',
+                'display' => $total === 0 ? '—' : number_format($avgLatencySeconds, 2).'s',
                 'caption' => 'Mean end-to-end duration',
             ],
-            'cost_24h' => [
-                'value' => round((float) $recent->sum('total_cost_usd'), 4),
-                'display' => '$'.number_format((float) $recent->sum('total_cost_usd'), 2),
-                'caption' => $recent->count().' run'.($recent->count() === 1 ? '' : 's').' in last 24h',
+            'cost_window' => [
+                'label' => $range['cost_label'],
+                'value' => round($spend, 4),
+                'display' => '$'.number_format($spend, 2),
+                'caption' => $total.' run'.($total === 1 ? '' : 's').' · '.$windowCaption,
             ],
         ];
     }
@@ -250,17 +339,18 @@ class DashboardController extends Controller
     }
 
     /**
-     * @param  array<int, int>  $workflowIds
+     * The newest runs inside the window, with the relations the list resource
+     * reads from eager-loaded.
+     *
+     * @param  Collection<int, WorkflowRun>  $runs
      * @return Collection<int, WorkflowRun>
      */
-    private function recentRuns(array $workflowIds): Collection
+    private function recentRuns(Collection $runs): Collection
     {
-        return WorkflowRun::query()
-            ->whereIn('workflow_id', $workflowIds)
-            ->with(['workflow', 'steps', 'auditEvents'])
-            ->orderByDesc('created_at')
-            ->limit(self::RECENT_RUN_LIMIT)
-            ->get();
+        $recent = $runs->take(self::RECENT_RUN_LIMIT);
+        $recent->loadMissing(['workflow', 'steps', 'auditEvents']);
+
+        return $recent->values();
     }
 
     /**
@@ -287,6 +377,7 @@ class DashboardController extends Controller
             return [
                 'width' => self::GRAPH_WIDTH,
                 'height' => self::GRAPH_HEIGHT,
+                'bounds' => $this->graphBounds([]),
                 'clusters' => [],
                 'links' => [],
                 'callout' => null,
@@ -348,7 +439,6 @@ class DashboardController extends Controller
                 // Offset each ring so spokes from different rings don't overlap.
                 $nodeAngle = deg2rad(($slot * 360 / $slots) + ($ring * 20));
                 $atRisk = in_array($run->status, self::INTERVENTION_STATUSES, true);
-                $isFlagged = false;
 
                 $nodes[] = [
                     'id' => $run->id,
@@ -356,13 +446,14 @@ class DashboardController extends Controller
                     'status' => $run->status,
                     'tone' => self::STATUS_TONES[$run->status] ?? 'info',
                     'at_risk' => $atRisk,
-                    'flagged' => $isFlagged,
+                    // Only the cluster core is ever flagged; ring nodes are not.
+                    'flagged' => false,
                     'cost_label' => $run->total_cost_usd === null
                         ? '—'
                         : '$'.number_format((float) $run->total_cost_usd, 4),
                     'x' => round($cx + ($ringRadius * cos($nodeAngle)), 2),
                     'y' => round($cy + ($ringRadius * sin($nodeAngle)), 2),
-                    'r' => $isFlagged ? 10.0 : ($atRisk ? 7.0 : 5.0),
+                    'r' => $atRisk ? 7.0 : 5.0,
                 ];
             }
 
@@ -404,10 +495,55 @@ class DashboardController extends Controller
         return [
             'width' => self::GRAPH_WIDTH,
             'height' => self::GRAPH_HEIGHT,
+            'bounds' => $this->graphBounds($clusters),
             'clusters' => $clusters,
             'links' => $this->clusterLinks($clusters),
             'callout' => $this->graphCallout($clusters, $topApproval),
             'legend' => $this->graphLegend($runs),
+        ];
+    }
+
+    /**
+     * The box the drawing actually occupies, labels included.
+     *
+     * The canvas is a fixed 1000×700, but a panel is whatever height its
+     * neighbours make it — fitting the whole canvas into that box letterboxed
+     * the graph. The client fits *this* box instead and grows it to the
+     * panel's own aspect ratio, so the drawing fills the panel without being
+     * stretched or cropped.
+     *
+     * @param  array<int, array<string, mixed>>  $clusters
+     * @return array{x: float, y: float, width: float, height: float}
+     */
+    private function graphBounds(array $clusters): array
+    {
+        if ($clusters === []) {
+            return ['x' => 0.0, 'y' => 0.0, 'width' => (float) self::GRAPH_WIDTH, 'height' => (float) self::GRAPH_HEIGHT];
+        }
+
+        $left = $right = $clusters[0]['x'];
+        $top = $bottom = $clusters[0]['y'];
+
+        foreach ($clusters as $cluster) {
+            $left = min($left, $cluster['x'] - $cluster['radius']);
+            $right = max($right, $cluster['x'] + $cluster['radius']);
+            // The workflow name sits above the ring, the risk ratio just inside it.
+            $top = min($top, $cluster['y'] - $cluster['radius'] - self::GRAPH_LABEL_ABOVE);
+            $bottom = max($bottom, $cluster['y'] + $cluster['radius']);
+
+            if ($cluster['core'] !== null) {
+                // ...and a flagged core carries its run key underneath.
+                $bottom = max($bottom, $cluster['core']['y'] + $cluster['core']['r'] + self::GRAPH_LABEL_BELOW);
+            }
+        }
+
+        $pad = 12.0;
+
+        return [
+            'x' => round($left - $pad, 2),
+            'y' => round($top - $pad, 2),
+            'width' => round(($right - $left) + (2 * $pad), 2),
+            'height' => round(($bottom - $top) + (2 * $pad), 2),
         ];
     }
 
@@ -550,6 +686,9 @@ class DashboardController extends Controller
 
     /**
      * Governance ledger: what the workspace can prove it decided.
+     *
+     * Cumulative across the workspace's whole history — an audit trail does not
+     * shrink when you narrow the view — so it is deliberately not windowed.
      *
      * @param  array<int, int>  $workflowIds
      * @return array<string, mixed>

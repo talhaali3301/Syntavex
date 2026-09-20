@@ -7,25 +7,53 @@ import KpiStatCard from '@/Components/KpiStatCard.vue';
 import LiveExecutionPulse from '@/Components/LiveExecutionPulse.vue';
 import RecentRunsTable from '@/Components/RecentRunsTable.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import type { CommandCentreProps } from '@/types';
-import { Head } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import type { CommandCentreProps, DashboardRangeKey } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<CommandCentreProps>();
 
-/**
- * Presentational only for Phase 3 — range filtering ships with the Runs
- * Explorer, so changing this does not re-query the server yet.
- */
-const RANGES = ['Last 24 hours', 'Last 7 days', 'Last 14 days', 'Last 30 days'];
-const range = ref(RANGES[2]);
 const search = ref('');
 
+/**
+ * The range selector re-queries the server: every windowed figure on this page
+ * (KPIs, Fleet Trust, the Decision Graph and Recent Runs) is recomputed from
+ * the runs inside the chosen window. Pending approvals and the Governance
+ * Ledger are current/cumulative state, so they deliberately stay whole.
+ */
+const selectRange = (key: string): void => {
+    if (key === props.range.key) {
+        return;
+    }
+
+    router.get(
+        '/dashboard',
+        key === '14d' ? {} : { range: key },
+        { preserveScroll: true, preserveState: true, replace: true },
+    );
+};
+
+const rangeKey = ref<DashboardRangeKey>(props.range.key);
+
+watch(
+    () => props.range.key,
+    (value) => {
+        rangeKey.value = value;
+    },
+);
+
+/** The search box hands off to the Runs Explorer, which owns run search. */
+const submitSearch = (): void => {
+    const term = search.value.trim();
+
+    router.get('/runs', term ? { search: term } : {});
+};
+
 const kpiCards = computed(() => [
-    { key: 'total', label: 'Total Executions', metric: props.kpis.total_executions, accent: 'cyan' as const },
-    { key: 'success', label: 'Success Rate', metric: props.kpis.success_rate, accent: 'emerald' as const },
-    { key: 'latency', label: 'Avg Latency', metric: props.kpis.avg_latency, accent: 'violet' as const },
-    { key: 'cost', label: '24h AI Cost', metric: props.kpis.cost_24h, accent: 'amber' as const },
+    { key: 'total', metric: props.kpis.total_executions, accent: 'cyan' as const },
+    { key: 'success', metric: props.kpis.success_rate, accent: 'emerald' as const },
+    { key: 'latency', metric: props.kpis.avg_latency, accent: 'violet' as const },
+    { key: 'cost', metric: props.kpis.cost_window, accent: 'amber' as const },
 ]);
 
 const pulseStats = computed(() => [
@@ -77,6 +105,7 @@ const pulseStats = computed(() => [
                         type="search"
                         placeholder="Search runs, workflows, agents…"
                         class="w-full rounded-lg border-white/10 bg-white/[0.04] py-2 pl-9 pr-3 text-sm text-white placeholder:text-white/30 focus:border-accent-cyan/50 focus:ring-2 focus:ring-accent-cyan/30"
+                        @keydown.enter.prevent="submitSearch"
                     />
                 </div>
 
@@ -91,14 +120,23 @@ const pulseStats = computed(() => [
                 </span>
 
                 <div class="relative shrink-0">
-                    <label for="range-select" class="sr-only">Date range</label>
+                    <label for="range-select" class="sr-only">
+                        Observation window, measured back from the newest run ({{ range.anchor_label }})
+                    </label>
                     <select
                         id="range-select"
-                        v-model="range"
+                        v-model="rangeKey"
+                        :title="`Measured back from the newest run · ${range.anchor_label}`"
                         class="appearance-none rounded-lg border-white/10 bg-white/[0.04] py-2 pl-3 pr-9 text-xs text-white/75 focus:border-accent-cyan/50 focus:ring-2 focus:ring-accent-cyan/30"
+                        @change="selectRange(($event.target as HTMLSelectElement).value)"
                     >
-                        <option v-for="option in RANGES" :key="option" class="bg-navy-raised">
-                            {{ option }}
+                        <option
+                            v-for="option in range.options"
+                            :key="option.key"
+                            :value="option.key"
+                            class="bg-navy-raised"
+                        >
+                            {{ option.label }}
                         </option>
                     </select>
                     <svg
@@ -128,7 +166,7 @@ const pulseStats = computed(() => [
                     <KpiStatCard
                         v-for="card in kpiCards"
                         :key="card.key"
-                        :label="card.label"
+                        :label="card.metric.label"
                         :value="card.metric.display"
                         :caption="card.metric.caption"
                         :accent="card.accent"

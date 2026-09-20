@@ -4,6 +4,8 @@ namespace App\Http\Resources;
 
 use App\Models\RunStep;
 use App\Models\WorkflowRun;
+use App\Support\RiskScore;
+use App\Support\RunObjective;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -49,12 +51,6 @@ class RunRowResource extends JsonResource
     ];
 
     /**
-     * Base weight per risk level. The remaining 0.25 of the score comes from
-     * how badly the policy was breached and how unsure the model was.
-     */
-    private const RISK_BASE = ['critical' => 0.75, 'high' => 0.60, 'medium' => 0.40, 'low' => 0.20];
-
-    /**
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -63,7 +59,7 @@ class RunRowResource extends JsonResource
             'id' => $this->id,
             'run_key' => $this->run_key,
             'workflow' => $this->workflow?->name,
-            'objective' => $this->objective(),
+            'objective' => RunObjective::for($this->resource),
             'agent' => $this->agentHandle(),
             'started_at' => $this->created_at?->toIso8601String(),
             'started_label' => $this->created_at?->format('M j · H:i:s'),
@@ -83,45 +79,6 @@ class RunRowResource extends JsonResource
             'error_message' => $this->error_message,
             'expansion' => $this->expansion(),
         ];
-    }
-
-    /**
-     * A human objective for the run, read out of the trigger step's payload.
-     * Key-driven rather than keyed on workflow slug, so a new workflow with a
-     * familiar payload shape still renders something useful.
-     */
-    private function objective(): string
-    {
-        $trigger = $this->steps?->first();
-        $payload = is_array($trigger?->output_payload) ? $trigger->output_payload : [];
-
-        if (isset($payload['requested_amount'], $payload['ticket_id'])) {
-            return sprintf(
-                'Refund $%s · ticket %s',
-                number_format((float) $payload['requested_amount'], 2),
-                $payload['ticket_id'],
-            );
-        }
-
-        if (isset($payload['ticket_id'], $payload['initial_priority'])) {
-            return sprintf('Triage ticket %s · %s', $payload['ticket_id'], $payload['initial_priority']);
-        }
-
-        if (isset($payload['accounts_in_scope'])) {
-            return sprintf(
-                'Health brief · %d accounts · %dd',
-                $payload['accounts_in_scope'],
-                $payload['window_days'] ?? 7,
-            );
-        }
-
-        if (isset($payload['service'], $payload['deviation_sigma'])) {
-            return sprintf('Anomaly · %s · %sσ', $payload['service'], $payload['deviation_sigma']);
-        }
-
-        $reasoning = $this->steps?->firstWhere('step_type', 'llm_reasoning');
-
-        return $reasoning?->step_name ?? $trigger?->step_name ?? 'Run '.$this->run_key;
     }
 
     /** The agent that last acted on the run, from the audit trail. */
@@ -196,17 +153,7 @@ class RunRowResource extends JsonResource
     }
 
     /**
-     * Risk level and a 0–1 score.
-     *
-     * FORMULA
-     *   score = base(risk_level)
-     *         + 0.15 × min(1, policy_overshoot ÷ policy_limit)
-     *         + 0.10 × (1 − model_confidence)
-     *
-     * The level itself carries most of the weight (it is the seeded
-     * classification); the remainder rewards precision — how far past the
-     * policy limit the run went, and how unsure the model was when it decided.
-     * Runs with no approval request carry no risk score.
+     * Risk level and a 0–1 score. Runs with no approval request carry none.
      *
      * @return array<string, mixed>|null
      */
@@ -219,15 +166,12 @@ class RunRowResource extends JsonResource
         $gateIn = is_array($gate?->input_payload) ? $gate->input_payload : [];
         $gateOut = is_array($gate?->output_payload) ? $gate->output_payload : [];
 
-        $limit = (float) ($gateOut['policy_limit'] ?? $gateIn['policy_limit'] ?? 0);
-        $overBy = (float) ($gateOut['over_by'] ?? 0);
-        $breach = $limit > 0 ? min(1.0, $overBy / $limit) : 0.0;
-
-        $score = (self::RISK_BASE[$approval->risk_level] ?? 0.2)
-            + (0.15 * $breach)
-            + (0.10 * (1 - ($confidence ?? 1.0)));
-
-        $score = round(min(1.0, max(0.0, $score)), 2);
+        $score = RiskScore::for(
+            $approval->risk_level,
+            (float) ($gateOut['policy_limit'] ?? $gateIn['policy_limit'] ?? 0),
+            (float) ($gateOut['over_by'] ?? 0),
+            $confidence,
+        );
 
         return [
             'level' => $approval->risk_level,
@@ -246,6 +190,21 @@ class RunRowResource extends JsonResource
     }
 
     /**
+     * Reads a snake_case verdict back as a past-tense phrase:
+     * `approve` -> "Approved", `approve_with_flag` -> "Approved with flag".
+     *
+     * Only the verb (the first word) is inflected; the rest is a qualifier.
+     */
+    private function pastTense(string $verdict): string
+    {
+        $words = explode('_', $verdict);
+        $verb = array_shift($words);
+        $verb = str_ends_with($verb, 'e') ? $verb.'d' : $verb.'ed';
+
+        return ucfirst(trim($verb.' '.implode(' ', $words)));
+    }
+
+    /**
      * The decision the run reached, plus the seeded approval summary verbatim.
      *
      * @return array<string, mixed>|null
@@ -257,14 +216,21 @@ class RunRowResource extends JsonResource
 
         $verdict = $out['decision'] ?? null;
         $amount = $gateIn['requested_amount'] ?? null;
+        $outcome = $verdict === null ? null : $this->pastTense($verdict);
 
         $headline = match (true) {
-            $verdict !== null && $amount !== null => sprintf(
-                'Refund $%s %sd',
+            $outcome !== null && $amount !== null => sprintf(
+                'Refund $%s %s',
                 number_format((float) $amount, 2),
-                $verdict,
+                lcfirst($outcome),
             ),
-            $verdict !== null => ucfirst($verdict).'d by agent',
+            $outcome !== null => $outcome.' by agent',
+            // Triage runs record a proposed priority rather than a verdict.
+            isset($out['original_priority'], $out['proposed_priority']) => sprintf(
+                'Priority %s → %s proposed',
+                $out['original_priority'],
+                $out['proposed_priority'],
+            ),
             default => $reasoning?->step_name ?? 'No reasoning step recorded',
         };
 
