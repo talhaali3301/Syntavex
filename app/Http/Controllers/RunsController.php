@@ -68,8 +68,14 @@ class RunsController extends Controller
         $stats = (clone $filtered)
             ->selectRaw('COUNT(*) as total')
             ->selectRaw('AVG(total_duration_ms) as avg_duration_ms')
-            ->selectRaw('AVG(total_cost_usd) as avg_cost')
             ->first();
+
+        // Spend across the 24h ending at the anchor, matching the mockup's
+        // "$x / 24h" framing. Anchored like every other window on this screen
+        // so it stays meaningful on seeded data instead of reading $0.00.
+        $cost24h = (float) (clone $filtered)
+            ->where('workflow_runs.created_at', '>=', $filters['anchor']->copy()->subDay())
+            ->sum('total_cost_usd');
 
         $runs = (clone $filtered)
             ->with(['workflow', 'steps', 'auditEvents', 'approvalRequests'])
@@ -95,7 +101,7 @@ class RunsController extends Controller
                 'is_default' => $filters['is_default'],
             ],
             'statusChips' => $this->statusChips($scopeTotal, $statusCounts),
-            'distribution' => $this->distribution($scopeTotal, $statusCounts, $stats),
+            'distribution' => $this->distribution($scopeTotal, $statusCounts, $stats, $cost24h),
             'volume' => $this->volume($workflowIds, $filters),
             'runs' => $rows,
             'pagination' => $this->pagination($runs),
@@ -318,7 +324,7 @@ class RunsController extends Controller
      * @param  array<string, int>  $counts
      * @return array<string, mixed>
      */
-    private function distribution(int $scopeTotal, array $counts, mixed $stats): array
+    private function distribution(int $scopeTotal, array $counts, mixed $stats, float $cost24h): array
     {
         $segments = [];
 
@@ -336,7 +342,6 @@ class RunsController extends Controller
         $successRate = $scopeTotal > 0 ? ($counts['completed'] / $scopeTotal) * 100 : 0.0;
         $filteredTotal = (int) ($stats->total ?? 0);
         $avgDuration = (float) ($stats->avg_duration_ms ?? 0);
-        $avgCost = (float) ($stats->avg_cost ?? 0);
 
         return [
             'total' => $scopeTotal,
@@ -344,14 +349,15 @@ class RunsController extends Controller
             'success_rate' => round($successRate, 1),
             'success_label' => number_format($successRate, 1).'% success',
             'segments' => $segments,
-            // Averages describe the filtered set; with nothing in view they are
-            // meaningless, so show a dash rather than a confident zero.
+            // Both figures describe the filtered set; with nothing in view they
+            // are meaningless, so show a dash rather than a confident zero.
+            // Two decimals on each, so they read as one pair.
             'avg_duration_label' => $filteredTotal === 0
                 ? 'avg —'
                 : 'avg '.number_format($avgDuration / 1000, 2).'s',
-            'avg_cost_label' => $filteredTotal === 0
-                ? '— avg cost'
-                : '$'.number_format($avgCost, 4).' avg cost',
+            'cost_window_label' => $filteredTotal === 0
+                ? '— / 24h'
+                : '$'.number_format($cost24h, 2).' / 24h',
             'filtered_total' => $filteredTotal,
         ];
     }

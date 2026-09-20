@@ -66,7 +66,7 @@ const DOT: Record<StatusTone, string> = {
                 {{ segment.count }} {{ segment.label }}
             </p>
             <p class="ml-auto font-mono text-[11px] text-ink-800">
-                {{ distribution.avg_duration_label }} · {{ distribution.avg_cost_label }}
+                {{ distribution.avg_duration_label }} · {{ distribution.cost_window_label }}
             </p>
         </div>
     </section>

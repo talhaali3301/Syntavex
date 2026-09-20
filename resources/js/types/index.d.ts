@@ -227,7 +227,7 @@ export interface DistributionData {
     success_label: string;
     segments: DistributionSegment[];
     avg_duration_label: string;
-    avg_cost_label: string;
+    cost_window_label: string;
     filtered_total: number;
 }
 

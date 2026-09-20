@@ -8,12 +8,33 @@ import StatusDistributionStrip from '@/Components/StatusDistributionStrip.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import type { RunsExplorerProps } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const props = defineProps<RunsExplorerProps>();
 
 const expanded = ref<number | null>(props.expandedRunId);
 const search = ref(props.filters.search);
+const searchInput = ref<HTMLInputElement | null>(null);
+
+// The chip has to name the key that actually works, so it follows the platform
+// rather than hard-coding the mockup's ⌘.
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+const shortcutChip = isMac ? '⌘K' : 'Ctrl K';
+const shortcutSpoken = isMac ? 'Command K' : 'Control K';
+
+const focusSearch = (event: KeyboardEvent): void => {
+    if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey)) {
+        return;
+    }
+
+    // Firefox binds Ctrl+K to its own search bar; claim it for ours.
+    event.preventDefault();
+    searchInput.value?.focus();
+    searchInput.value?.select();
+};
+
+onMounted(() => window.addEventListener('keydown', focusSearch));
+onUnmounted(() => window.removeEventListener('keydown', focusSearch));
 
 // Re-sync the open row whenever the server sends a new page of results.
 watch(
@@ -125,21 +146,30 @@ const toggleRow = (id: number): void => {
 
             <div class="ml-auto flex items-center gap-3">
                 <div
-                    class="flex h-9 min-w-[21rem] items-center gap-2.5 rounded-[9px] border border-accent-cyan/35 bg-[rgba(10,20,35,0.75)] px-3.5 shadow-[0_0_22px_rgba(45,226,230,0.10)] focus-within:border-accent-cyan/70"
+                    class="flex h-9 min-w-[26rem] items-center gap-2.5 rounded-[9px] border border-accent-cyan/35 bg-[rgba(10,20,35,0.75)] px-3.5 shadow-[0_0_22px_rgba(45,226,230,0.10)] focus-within:border-accent-cyan/70"
                 >
                     <svg class="h-3.5 w-3.5 shrink-0 text-accent-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <circle cx="11" cy="11" r="7" />
                         <path d="m16.5 16.5 4 4" />
                     </svg>
                     <span class="shrink-0 font-mono text-xs text-glow-blue" aria-hidden="true">trace:</span>
-                    <label for="runs-search" class="sr-only">Search by trace ID or workflow name</label>
+                    <label for="runs-search" class="sr-only">
+                        Search by trace ID or workflow name. Shortcut: {{ shortcutSpoken }}
+                    </label>
                     <input
                         id="runs-search"
+                        ref="searchInput"
                         v-model="search"
                         type="search"
                         placeholder="search by trace ID or workflow name…"
                         class="min-w-0 flex-1 border-0 bg-transparent p-0 font-mono text-xs text-ink-100 placeholder:text-[#55697F] focus:ring-0"
                     />
+                    <kbd
+                        class="shrink-0 rounded border border-[rgba(160,205,245,0.14)] px-[5px] py-0.5 font-mono text-[10px] font-medium text-ink-950"
+                        aria-hidden="true"
+                    >
+                        {{ shortcutChip }}
+                    </kbd>
                 </div>
 
                 <a
