@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html,
+    body {
+        @apply min-h-full bg-navy-base font-sans text-white antialiased;
+    }
+}
+
+@layer components {
+    /* Dark glass surface shared by every Command Centre panel. */
+    .glass-panel {
+        @apply relative overflow-hidden rounded-2xl border border-white/10 bg-navy-raised/60 backdrop-blur-xl;
+        box-shadow:
+            inset 0 1px 0 0 rgb(255 255 255 / 0.06),
+            0 24px 60px -30px rgb(0 0 0 / 0.9);
+    }
+
+    .panel-heading {
+        @apply font-display text-sm font-semibold tracking-tight text-white;
+    }
+
+    .panel-eyebrow {
+        @apply text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white/40;
+    }
+}
+
+@layer utilities {
+    /*
+     * Mirrors the `status.*` and `accent.*` tokens in tailwind.config.js so SVG
+     * fills/strokes can reference the same palette as the Tailwind classes.
+     */
+    .tone-vars {
+        --tone-completed: #55d98b;
+        --tone-review: #f8c65d;
+        --tone-critical: #f26c78;
+        --tone-info: #5aa8ff;
+        --accent-cyan: #2de2e6;
+        --accent-violet: #8b7cff;
+    }
+
+    .pulse-scroll {
+        animation: pulse-scroll 9s linear infinite;
+    }
+
+    .pulse-breathe {
+        animation: pulse-breathe 2.4s ease-in-out infinite;
+    }
+
+    .risk-ring {
+        animation: risk-ring 2.8s ease-out infinite;
+        transform-box: fill-box;
+        transform-origin: center;
+    }
+
+    .link-flow {
+        animation: link-flow 1.6s linear infinite;
+    }
+}
+
+@keyframes pulse-scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes pulse-breathe {
+    0%,
+    100% {
+        opacity: 0.45;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes risk-ring {
+    0% {
+        opacity: 0.75;
+        transform: scale(0.94);
+    }
+    70% {
+        opacity: 0;
+        transform: scale(1.12);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.12);
+    }
+}
+
+@keyframes link-flow {
+    to {
+        stroke-dashoffset: -16;
+    }
+}
+
+@layer utilities {
+    .text-gradient-cyan {
+        background-image: linear-gradient(120deg, #ffffff 12%, #2de2e6 88%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .bg-dot-grid {
+        background-image: radial-gradient(
+            rgba(255, 255, 255, 0.07) 1px,
+            transparent 1px
+        );
+        background-size: 22px 22px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

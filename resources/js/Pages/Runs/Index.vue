@@ -1,0 +1,197 @@
+<script setup lang="ts">
+import RunsEmptyState from '@/Components/RunsEmptyState.vue';
+import RunsFilterBar from '@/Components/RunsFilterBar.vue';
+import RunsPagination from '@/Components/RunsPagination.vue';
+import RunsTable from '@/Components/RunsTable.vue';
+import RunVolumeChart from '@/Components/RunVolumeChart.vue';
+import StatusDistributionStrip from '@/Components/StatusDistributionStrip.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import type { RunsExplorerProps } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+
+const props = defineProps<RunsExplorerProps>();
+
+const expanded = ref<number | null>(props.expandedRunId);
+const search = ref(props.filters.search);
+
+// Re-sync the open row whenever the server sends a new page of results.
+watch(
+    () => props.expandedRunId,
+    (value) => {
+        expanded.value = value;
+    },
+);
+
+watch(
+    () => props.filters.search,
+    (value) => {
+        search.value = value;
+    },
+);
+
+type FilterPatch = Record<string, string | number | null>;
+
+/** Only non-default values ride in the URL, so a cleared filter leaves no trace. */
+const buildQuery = (patch: FilterPatch = {}): Record<string, string> => {
+    const merged: FilterPatch = {
+        status: props.filters.status,
+        workflow: props.filters.workflow,
+        search: props.filters.search,
+        from: props.filters.from,
+        to: props.filters.to,
+        ...patch,
+    };
+
+    const query: Record<string, string> = {};
+
+    if (merged.status && merged.status !== 'all') query.status = String(merged.status);
+    if (merged.workflow) query.workflow = String(merged.workflow);
+    if (merged.search) query.search = String(merged.search);
+    if (merged.from) query.from = String(merged.from);
+    if (merged.to) query.to = String(merged.to);
+
+    return query;
+};
+
+/** Any filter change resets to page 1 — `page` is deliberately never merged in. */
+const applyFilters = (patch: FilterPatch = {}): void => {
+    router.get('/runs', buildQuery(patch), {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
+};
+
+const clearFilters = (): void => {
+    router.get('/runs', {}, { preserveScroll: true, replace: true });
+};
+
+const widenRange = (): void => {
+    const to = new Date(props.filters.to);
+    const from = new Date(to);
+    from.setDate(from.getDate() - 89);
+
+    applyFilters({ from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) });
+};
+
+// Search is wired live: it re-queries on a short debounce (LIKE against run key
+// and workflow name), so it is not presentational.
+let searchTimer: ReturnType<typeof setTimeout> | undefined;
+
+watch(search, (value) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        if (value !== props.filters.search) {
+            applyFilters({ search: value });
+        }
+    }, 300);
+});
+
+const exportHref = computed(() => {
+    const query = new URLSearchParams(buildQuery()).toString();
+
+    return query ? `/runs/export?${query}` : '/runs/export';
+});
+
+const toggleRow = (id: number): void => {
+    expanded.value = expanded.value === id ? null : id;
+};
+</script>
+
+<template>
+    <Head title="Runs Explorer" />
+
+    <AppLayout>
+        <!-- Top bar -->
+        <header
+            class="sticky top-0 z-20 flex h-[74px] flex-wrap items-center gap-4 border-b border-[rgba(160,205,245,0.09)] bg-gradient-to-b from-[rgba(14,26,44,0.82)] to-[rgba(9,18,32,0.42)] px-8 backdrop-blur-lg"
+        >
+            <div class="flex flex-col gap-0.5">
+                <div class="flex items-center gap-2.5">
+                    <h1 class="font-display text-[17px] font-semibold -tracking-[0.01em] text-ink-100">
+                        Runs Explorer
+                    </h1>
+                    <span
+                        class="rounded border border-accent-cyan/35 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-accent-cyan"
+                    >
+                        DIRECTORY
+                    </span>
+                </div>
+                <p class="font-mono text-[11.5px] text-ink-700">
+                    workspace / {{ workspace.slug }} · {{ workspace.tier.toLowerCase() }} / runs
+                </p>
+            </div>
+
+            <div class="ml-auto flex items-center gap-3">
+                <div
+                    class="flex h-9 min-w-[21rem] items-center gap-2.5 rounded-[9px] border border-accent-cyan/35 bg-[rgba(10,20,35,0.75)] px-3.5 shadow-[0_0_22px_rgba(45,226,230,0.10)] focus-within:border-accent-cyan/70"
+                >
+                    <svg class="h-3.5 w-3.5 shrink-0 text-accent-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m16.5 16.5 4 4" />
+                    </svg>
+                    <span class="shrink-0 font-mono text-xs text-glow-blue" aria-hidden="true">trace:</span>
+                    <label for="runs-search" class="sr-only">Search by trace ID or workflow name</label>
+                    <input
+                        id="runs-search"
+                        v-model="search"
+                        type="search"
+                        placeholder="search by trace ID or workflow name…"
+                        class="min-w-0 flex-1 border-0 bg-transparent p-0 font-mono text-xs text-ink-100 placeholder:text-[#55697F] focus:ring-0"
+                    />
+                </div>
+
+                <a
+                    :href="exportHref"
+                    class="flex h-9 shrink-0 items-center gap-2 rounded-[9px] border border-[rgba(160,205,245,0.12)] bg-[rgba(10,20,35,0.7)] px-3.5 text-xs font-medium text-ink-400 transition duration-200 hover:border-accent-cyan/45 hover:text-glow-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
+                >
+                    <svg class="h-[13px] w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16" />
+                    </svg>
+                    Export
+                </a>
+            </div>
+        </header>
+
+        <div class="flex flex-col gap-4 px-8 pb-7 pt-[22px]">
+            <!-- Distribution + volume -->
+            <div class="grid gap-[18px] lg:grid-cols-[minmax(0,1fr)_300px]">
+                <StatusDistributionStrip :distribution="distribution" />
+                <RunVolumeChart :volume="volume" />
+            </div>
+
+            <RunsFilterBar
+                :filters="filters"
+                :chips="statusChips"
+                :workflow-options="workflowOptions"
+                :showing="showing"
+                @change="applyFilters"
+                @clear="clearFilters"
+            />
+
+            <RunsTable
+                v-if="runs.length > 0"
+                :runs="runs"
+                :expanded-id="expanded"
+                @toggle="toggleRow"
+            >
+                <template #footer>
+                    <RunsPagination :pagination="pagination" />
+                </template>
+            </RunsTable>
+
+            <div
+                v-else
+                class="overflow-hidden rounded-2xl border border-[rgba(160,205,245,0.10)] bg-panel-base shadow-[0_20px_48px_rgba(2,8,18,0.55)]"
+            >
+                <RunsEmptyState
+                    :filters="filters"
+                    :workflow-options="workflowOptions"
+                    @clear="clearFilters"
+                    @widen="widenRange"
+                />
+            </div>
+        </div>
+    </AppLayout>
+</template>
