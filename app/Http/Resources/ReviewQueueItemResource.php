@@ -26,9 +26,6 @@ use Illuminate\Support\Carbon;
  */
 class ReviewQueueItemResource extends JsonResource
 {
-    /** Critical severity is what earns the Freeze Frame treatment. */
-    private const FROZEN_LEVEL = 'critical';
-
     private const LEVEL_RANK = ['critical' => 0, 'high' => 1, 'medium' => 2, 'low' => 3];
 
     private const LEVEL_TONES = [
@@ -93,7 +90,7 @@ class ReviewQueueItemResource extends JsonResource
             'waiting_seconds' => $waited,
             'waiting_label' => $this->elapsedLabel($waited),
             'sla_label' => $this->slaLabel($waited),
-            'frozen' => $this->risk_level === self::FROZEN_LEVEL,
+            'frozen' => self::irreversible($out),
             'intercept' => $this->intercept($in, $out, $gate),
             'readout' => $this->readout($reasoning, $out, $in),
             'impact_rows' => $this->impactRows($out, $held),
@@ -142,7 +139,7 @@ class ReviewQueueItemResource extends JsonResource
     private function category(array $out): string
     {
         return match (true) {
-            (bool) ($out['irreversible'] ?? false) => 'DESTRUCTIVE',
+            self::irreversible($out) => 'DESTRUCTIVE',
             isset($out['observed_confidence']) => 'LOW CONF',
             default => 'POLICY',
         };
@@ -221,7 +218,7 @@ class ReviewQueueItemResource extends JsonResource
                     number_format($attempted / $limit, 1),
                 )
                 : ($out['reason'] ?? null),
-            'irreversible' => (bool) ($out['irreversible'] ?? false),
+            'irreversible' => self::irreversible($out),
         ];
     }
 
@@ -331,6 +328,18 @@ class ReviewQueueItemResource extends JsonResource
     // -----------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------
+
+    /**
+     * Whether the held action cannot be undone once it commits. This, not the
+     * severity band, is what earns the Freeze Frame treatment: a critical
+     * refund can be reversed, a bulk delete cannot.
+     *
+     * @param  array<string, mixed>  $out  the gate's output payload
+     */
+    private static function irreversible(array $out): bool
+    {
+        return (bool) ($out['irreversible'] ?? false);
+    }
 
     private function agentHandle(WorkflowRun $run): string
     {

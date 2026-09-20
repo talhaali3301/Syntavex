@@ -592,7 +592,7 @@ export interface ReviewQueueItem {
     waiting_seconds: number;
     waiting_label: string;
     sla_label: string;
-    /** Critical severity — renders as a Freeze Frame rather than a row. */
+    /** The held action is irreversible — renders as a Freeze Frame rather than a row. */
     frozen: boolean;
     intercept: ReviewIntercept;
     readout: ReviewReadout;

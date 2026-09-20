@@ -146,11 +146,37 @@ class ReviewQueueTest extends TestCase
         $this->assertSame('none referenced', $rows['snapshot']);
     }
 
-    public function test_only_critical_items_are_frozen(): void
+    public function test_only_irreversible_items_are_frozen(): void
     {
         foreach ($this->props()['queue'] as $item) {
-            $this->assertSame($item['risk']['level'] === 'critical', $item['frozen']);
+            $gate = WorkflowRun::query()
+                ->findOrFail($item['run_id'])
+                ->steps()
+                ->where('step_type', 'approval_gate')
+                ->first();
+
+            $this->assertSame((bool) ($gate?->output_payload['irreversible'] ?? false), $item['frozen']);
         }
+    }
+
+    /**
+     * #8421 is critical but reversible — a refund can be clawed back — so it
+     * stays a normal queue row. Only the bulk deletion freezes.
+     */
+    public function test_a_critical_but_reversible_breach_renders_as_a_normal_row(): void
+    {
+        $queue = collect($this->props()['queue']);
+
+        $refund = $queue->firstWhere('run_key', '8421');
+        $this->assertSame('CRITICAL', $refund['risk']['level_label']);
+        $this->assertFalse($refund['frozen']);
+        $this->assertFalse($refund['intercept']['irreversible']);
+        $this->assertNotSame('DESTRUCTIVE', $refund['category']);
+
+        $this->assertSame(
+            [$this->intercept()->workflowRun->run_key],
+            $queue->where('frozen', true)->pluck('run_key')->all(),
+        );
     }
 
     public function test_every_item_carries_the_inspector_payload_its_expansion_renders(): void

@@ -24,7 +24,7 @@ const toggle = (id: number): void => {
     expandedId.value = expandedId.value === id ? null : id;
 };
 
-/** Focus mode strips the desk back to what is actually on fire. */
+/** Focus mode strips the desk back to the decisions that cannot be undone. */
 const visible = computed(() =>
     focusMode.value ? props.queue.filter((item) => item.frozen) : props.queue,
 );
@@ -197,7 +197,7 @@ const pulse = computed(() => {
                             v-if="focusMode && visible.length < queue.length"
                             class="rounded-xl border border-dashed border-[rgba(160,205,245,0.16)] bg-[rgba(10,20,35,0.6)] px-4 py-3 font-mono text-[10.5px] text-ink-700"
                         >
-                            {{ queue.length - visible.length }} lower-severity item{{
+                            {{ queue.length - visible.length }} reversible item{{
                                 queue.length - visible.length === 1 ? '' : 's'
                             }}
                             hidden by focus mode
