@@ -29,6 +29,9 @@ class RunsController extends Controller
     /** Width of both the default date filter and the volume chart, in days. */
     private const WINDOW_DAYS = 14;
 
+    /** Width of the rolling spend total on the distribution strip, in days. */
+    private const COST_WINDOW_DAYS = 3;
+
     private const STATUSES = ['completed', 'needs_review', 'failed'];
 
     private const STATUS_META = [
@@ -70,11 +73,12 @@ class RunsController extends Controller
             ->selectRaw('AVG(total_duration_ms) as avg_duration_ms')
             ->first();
 
-        // Spend across the 24h ending at the anchor, matching the mockup's
-        // "$x / 24h" framing. Anchored like every other window on this screen
-        // so it stays meaningful on seeded data instead of reading $0.00.
-        $cost24h = (float) (clone $filtered)
-            ->where('workflow_runs.created_at', '>=', $filters['anchor']->copy()->subDay())
+        // Rolling spend over the COST_WINDOW_DAYS ending at the anchor, in the
+        // mockup's "$x / <window>" framing. Anchored like every other window on
+        // this screen so it stays meaningful on seeded data: the seed averages
+        // ~3 runs/day, so a 24h slice would often hold a single run.
+        $costWindow = (float) (clone $filtered)
+            ->where('workflow_runs.created_at', '>=', $filters['anchor']->copy()->subDays(self::COST_WINDOW_DAYS))
             ->sum('total_cost_usd');
 
         $runs = (clone $filtered)
@@ -101,7 +105,7 @@ class RunsController extends Controller
                 'is_default' => $filters['is_default'],
             ],
             'statusChips' => $this->statusChips($scopeTotal, $statusCounts),
-            'distribution' => $this->distribution($scopeTotal, $statusCounts, $stats, $cost24h),
+            'distribution' => $this->distribution($scopeTotal, $statusCounts, $stats, $costWindow),
             'volume' => $this->volume($workflowIds, $filters),
             'runs' => $rows,
             'pagination' => $this->pagination($runs),
@@ -324,7 +328,7 @@ class RunsController extends Controller
      * @param  array<string, int>  $counts
      * @return array<string, mixed>
      */
-    private function distribution(int $scopeTotal, array $counts, mixed $stats, float $cost24h): array
+    private function distribution(int $scopeTotal, array $counts, mixed $stats, float $costWindow): array
     {
         $segments = [];
 
@@ -356,8 +360,8 @@ class RunsController extends Controller
                 ? 'avg —'
                 : 'avg '.number_format($avgDuration / 1000, 2).'s',
             'cost_window_label' => $filteredTotal === 0
-                ? '— / 24h'
-                : '$'.number_format($cost24h, 2).' / 24h',
+                ? '— / '.self::COST_WINDOW_DAYS.'d'
+                : '$'.number_format($costWindow, 2).' / '.self::COST_WINDOW_DAYS.'d',
             'filtered_total' => $filteredTotal,
         ];
     }
