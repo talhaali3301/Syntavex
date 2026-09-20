@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/nocturne-09007c8a-e0d4-41aa-9ce0-5c14a1cd3ab6/styles.css">
+<script src="_ds/nocturne-09007c8a-e0d4-41aa-9ce0-5c14a1cd3ab6/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#050D18;color:#E6EEF8;font-family:"Inter",system-ui,sans-serif}
+a{color:#2DE2E6;text-decoration:none}
+a:hover{color:#8B7CFF}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;gap:30px;padding:0 0 40px;background:#050D18">
+
+<div data-screen-label="02 Runs Explorer" style="position:relative;width:1600px;min-height:1215px;background:linear-gradient(160deg,#050D18 0%,#07111F 55%,#050D18 100%);overflow:hidden;font-family:'Inter',system-ui,sans-serif">
+
+  <div style="position:absolute;top:-260px;left:-180px;width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,rgba(45,226,230,0.16) 0%,rgba(45,226,230,0.05) 38%,rgba(45,226,230,0) 68%);pointer-events:none"></div>
+  <div style="position:absolute;bottom:-340px;right:-200px;width:1000px;height:1000px;border-radius:50%;background:radial-gradient(circle,rgba(139,124,255,0.18) 0%,rgba(139,124,255,0.05) 40%,rgba(139,124,255,0) 70%);pointer-events:none"></div>
+  <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(150,190,235,0.10) 1px,transparent 1px);background-size:26px 26px;opacity:0.5;pointer-events:none"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,13,24,0) 60%,rgba(3,8,15,0.7) 100%);pointer-events:none"></div>
+
+  <!-- nav rail -->
+  <div style="position:absolute;top:0;left:0;bottom:0;width:76px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:22px 0 20px;background:linear-gradient(180deg,rgba(23,38,60,0.72) 0%,rgba(12,22,38,0.55) 100%);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-right:1px solid rgba(160,205,245,0.10);box-shadow:24px 0 60px rgba(0,0,0,0.45);z-index:5">
+    <div style="width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(45,226,230,0.28),rgba(139,124,255,0.28));border:1px solid rgba(45,226,230,0.45);box-shadow:0 0 22px rgba(45,226,230,0.35);margin-bottom:16px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BFF6F7" stroke-width="1.6"><path d="M12 2.5 21 7v10l-9 4.5L3 17V7z"/><path d="M12 7.5 16.5 10v4L12 16.5 7.5 14v-4z" stroke="#8B7CFF"/></svg>
+    </div>
+    <div style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid transparent;cursor:pointer" style-hover="background:rgba(160,205,245,0.08);border:1px solid rgba(160,205,245,0.16)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7D93AE" stroke-width="1.6"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg>
+    </div>
+    <div style="position:relative;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(45,226,230,0.16),rgba(45,226,230,0.04));border:1px solid rgba(45,226,230,0.32);box-shadow:0 0 18px rgba(45,226,230,0.18) inset;cursor:pointer">
+      <div style="position:absolute;left:-14px;top:12px;width:2px;height:20px;border-radius:2px;background:#2DE2E6;box-shadow:0 0 10px #2DE2E6"></div>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2DE2E6" stroke-width="1.6"><path d="M3 12h4l2.5-6.5L14 18.5 16.5 12H21"/></svg>
+    </div>
+    <div style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid transparent;cursor:pointer" style-hover="background:rgba(160,205,245,0.08);border:1px solid rgba(160,205,245,0.16)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7D93AE" stroke-width="1.6"><circle cx="6" cy="6.5" r="2.6"/><circle cx="18" cy="6.5" r="2.6"/><circle cx="12" cy="17.5" r="2.6"/><path d="M7.9 8.3 11 15.4M16.1 8.3 13 15.4M8.6 6.5h6.8"/></svg>
+    </div>
+    <div style="position:relative;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid transparent;cursor:pointer" style-hover="background:rgba(160,205,245,0.08);border:1px solid rgba(160,205,245,0.16)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7D93AE" stroke-width="1.6"><path d="M12 3 20 6v6c0 4.4-3.3 7.8-8 9-4.7-1.2-8-4.6-8-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>
+      <div style="position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#F8C65D;box-shadow:0 0 10px #F8C65D"></div>
+    </div>
+    <div style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid transparent;cursor:pointer" style-hover="background:rgba(160,205,245,0.08);border:1px solid rgba(160,205,245,0.16)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7D93AE" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2.4"/><path d="M3 9h18M8 4v16"/></svg>
+    </div>
+    <div style="flex:1"></div>
+    <div style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid transparent;cursor:pointer" style-hover="background:rgba(160,205,245,0.08);border:1px solid rgba(160,205,245,0.16)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7D93AE" stroke-width="1.6"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5"/></svg>
+    </div>
+    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(145deg,#8B7CFF,#2DE2E6);display:grid;place-items:center;font:600 12px 'Space Grotesk',sans-serif;color:#061020;cursor:pointer;box-shadow:0 0 18px rgba(139,124,255,0.4)">MK</div>
+  </div>
+
+  <!-- top bar -->
+  <div style="position:absolute;top:0;left:76px;right:0;height:74px;display:flex;align-items:center;gap:18px;padding:0 32px;background:linear-gradient(180deg,rgba(14,26,44,0.82),rgba(9,18,32,0.42));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(160,205,245,0.09);z-index:4">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="font:600 17px/1 'Space Grotesk',sans-serif;letter-spacing:-0.01em;color:#EAF3FB">Runs Explorer</span>
+        <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:0.08em;color:#2DE2E6;border:1px solid rgba(45,226,230,0.35);border-radius:4px;padding:3px 6px">DIRECTORY</span>
+      </div>
+      <span style="font:400 11.5px/1 'JetBrains Mono',monospace;color:#6F87A3">workspace / northstar-support · production / runs</span>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:9px;height:36px;padding:0 14px;border-radius:9px;background:rgba(10,20,35,0.75);border:1px solid rgba(45,226,230,0.35);min-width:340px;box-shadow:0 0 22px rgba(45,226,230,0.10);cursor:text">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2DE2E6" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+      <span style="font:400 12px 'JetBrains Mono',monospace;color:#9FC9E8">trace:</span>
+      <span style="font:400 12px 'JetBrains Mono',monospace;color:#55697F">search by trace ID or workflow name…</span>
+      <span style="margin-left:auto;font:500 10px 'JetBrains Mono',monospace;color:#4A5D73;border:1px solid rgba(160,205,245,0.14);border-radius:4px;padding:2px 5px">⌘K</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:9px;background:rgba(10,20,35,0.7);border:1px solid rgba(160,205,245,0.12);font:500 12px 'Inter',sans-serif;color:#A8BDD4;cursor:pointer" style-hover="border:1px solid rgba(45,226,230,0.45);color:#BFF6F7">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></svg>
+      Export
+    </div>
+  </div>
+
+  <div style="position:absolute;top:74px;left:76px;right:0;bottom:0;display:flex;flex-direction:column;gap:16px;padding:22px 32px 26px">
+
+    <!-- distribution strip -->
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px">
+      <div style="position:relative;border-radius:16px;padding:16px 20px 15px;background:linear-gradient(150deg,rgba(45,226,230,0.10) 0%,rgba(28,48,76,0.40) 45%,rgba(139,124,255,0.12) 100%);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(160,222,245,0.18);box-shadow:0 20px 48px rgba(2,8,18,0.6),inset 0 1px 0 rgba(215,245,255,0.14);overflow:hidden">
+        <div style="position:absolute;top:-80px;left:120px;width:260px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(45,226,230,0.18),rgba(45,226,230,0) 70%)"></div>
+        <div style="position:relative;display:flex;align-items:center;gap:12px">
+          <span style="font:600 10.5px 'JetBrains Mono',monospace;letter-spacing:0.14em;color:#93E9EC">STATUS DISTRIBUTION</span>
+          <span style="font:400 10.5px 'JetBrains Mono',monospace;color:#7D93AE">40 runs · 14 days</span>
+          <div style="flex:1"></div>
+          <span style="font:500 11px 'JetBrains Mono',monospace;color:#8FEFBB">80.0% success</span>
+        </div>
+        <div style="position:relative;display:flex;gap:3px;height:12px;margin-top:13px;border-radius:6px;overflow:hidden">
+          <div style="flex:32;background:linear-gradient(180deg,#6FE4A0,#55D98B);box-shadow:0 0 16px rgba(85,217,139,0.45)"></div>
+          <div style="flex:3;background:linear-gradient(180deg,#FBD378,#F8C65D);box-shadow:0 0 16px rgba(248,198,93,0.45)"></div>
+          <div style="flex:5;background:linear-gradient(180deg,#F5808B,#F26C78);box-shadow:0 0 16px rgba(242,108,120,0.45)"></div>
+        </div>
+        <div style="position:relative;display:flex;gap:26px;margin-top:11px">
+          <span style="display:flex;align-items:center;gap:7px;font:400 11px 'JetBrains Mono',monospace;color:#8AA3BC"><span style="width:7px;height:7px;border-radius:50%;background:#55D98B"></span>32 completed</span>
+          <span style="display:flex;align-items:center;gap:7px;font:400 11px 'JetBrains Mono',monospace;color:#8AA3BC"><span style="width:7px;height:7px;border-radius:50%;background:#F8C65D"></span>3 needs review</span>
+          <span style="display:flex;align-items:center;gap:7px;font:400 11px 'JetBrains Mono',monospace;color:#8AA3BC"><span style="width:7px;height:7px;border-radius:50%;background:#F26C78"></span>5 failed</span>
+          <div style="flex:1"></div>
+          <span style="font:400 11px 'JetBrains Mono',monospace;color:#61788F">avg 3.42s · $18.74 / 24h</span>
+        </div>
+      </div>
+
+      <div style="border-radius:16px;padding:16px 18px;background:rgba(10,20,35,0.72);border:1px solid rgba(160,205,245,0.10);box-shadow:0 16px 38px rgba(2,8,18,0.45)">
+        <span style="font:600 10.5px 'JetBrains Mono',monospace;letter-spacing:0.14em;color:#7D93AE">RUN VOLUME · 14D</span>
+        <div style="display:flex;align-items:flex-end;gap:4px;height:44px;margin-top:12px">
+          <div style="flex:1;height:34%;border-radius:2px;background:rgba(90,168,255,0.28)"></div><div style="flex:1;height:52%;border-radius:2px;background:rgba(90,168,255,0.28)"></div><div style="flex:1;height:40%;border-radius:2px;background:rgba(242,108,120,0.55)"></div><div style="flex:1;height:66%;border-radius:2px;background:rgba(90,168,255,0.28)"></div><div style="flex:1;height:48%;border-radius:2px;background:rgba(90,168,255,0.28)"></div><div style="flex:1;height:74%;border-radius:2px;background:rgba(90,168,255,0.35)"></div><div style="flex:1;height:58%;border-radius:2px;background:rgba(248,198,93,0.55)"></div><div style="flex:1;height:44%;border-radius:2px;background:rgba(90,168,255,0.28)"></div><div style="flex:1;height:80%;border-radius:2px;background:rgba(90,168,255,0.35)"></div><div style="flex:1;height:62%;border-radius:2px;background:rgba(90,168,255,0.28)"></div><div style="flex:1;height:70%;border-radius:2px;background:rgba(242,108,120,0.55)"></div><div style="flex:1;height:54%;border-radius:2px;background:rgba(90,168,255,0.28)"></div><div style="flex:1;height:88%;border-radius:2px;background:rgba(45,226,230,0.55)"></div><div style="flex:1;height:100%;border-radius:2px;background:#2DE2E6;box-shadow:0 0 12px rgba(45,226,230,0.6)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- filter bar -->
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:linear-gradient(150deg,rgba(40,58,86,0.42),rgba(12,22,38,0.55));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(160,205,245,0.13);box-shadow:0 14px 34px rgba(2,8,18,0.45)">
+      <div style="display:flex;gap:6px">
+        <span style="display:flex;align-items:center;gap:7px;font:600 11px 'JetBrains Mono',monospace;letter-spacing:0.06em;color:#061020;background:linear-gradient(140deg,#7DEDF0,#2DE2E6);border-radius:8px;padding:7px 12px;box-shadow:0 0 20px rgba(45,226,230,0.35);cursor:pointer">ALL<span style="opacity:.65">40</span></span>
+        <span style="display:flex;align-items:center;gap:7px;font:500 11px 'JetBrains Mono',monospace;letter-spacing:0.06em;color:#8FEFBB;background:rgba(85,217,139,0.10);border:1px solid rgba(85,217,139,0.28);border-radius:8px;padding:6px 12px;cursor:pointer" style-hover="background:rgba(85,217,139,0.20);border:1px solid rgba(85,217,139,0.55);box-shadow:0 0 18px rgba(85,217,139,0.18)">COMPLETED<span style="color:#6F9A82">32</span></span>
+        <span style="display:flex;align-items:center;gap:7px;font:500 11px 'JetBrains Mono',monospace;letter-spacing:0.06em;color:#F8C65D;background:rgba(248,198,93,0.10);border:1px solid rgba(248,198,93,0.30);border-radius:8px;padding:6px 12px;cursor:pointer" style-hover="background:rgba(248,198,93,0.20);border:1px solid rgba(248,198,93,0.6);box-shadow:0 0 18px rgba(248,198,93,0.18)">NEEDS REVIEW<span style="color:#A08A55">3</span></span>
+        <span style="display:flex;align-items:center;gap:7px;font:500 11px 'JetBrains Mono',monospace;letter-spacing:0.06em;color:#F5959D;background:rgba(242,108,120,0.10);border:1px solid rgba(242,108,120,0.30);border-radius:8px;padding:6px 12px;cursor:pointer" style-hover="background:rgba(242,108,120,0.20);border:1px solid rgba(242,108,120,0.6);box-shadow:0 0 18px rgba(242,108,120,0.18)">FAILED<span style="color:#9E6B72">5</span></span>
+      </div>
+      <div style="width:1px;height:26px;background:rgba(160,205,245,0.14);margin:0 4px"></div>
+      <div style="display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:8px;background:rgba(10,20,35,0.7);border:1px solid rgba(160,205,245,0.12);cursor:pointer" style-hover="border:1px solid rgba(45,226,230,0.4)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5E8AAE" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+        <span style="font:400 11.5px 'JetBrains Mono',monospace;color:#B9CDE0">Sep 05 → Sep 19</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:8px;background:rgba(10,20,35,0.7);border:1px solid rgba(139,124,255,0.35);box-shadow:0 0 18px rgba(139,124,255,0.12);cursor:pointer" style-hover="border:1px solid rgba(139,124,255,0.7)">
+        <span style="font:400 11.5px 'Inter',sans-serif;color:#7D93AE">Workflow</span>
+        <span style="font:500 11.5px 'Inter',sans-serif;color:#D6D0FF">Priority Refund Review</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#B5ABFC" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(160,205,245,0.12);cursor:pointer" style-hover="border:1px solid rgba(160,205,245,0.3)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5E8AAE" stroke-width="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        <span style="font:400 11.5px 'Inter',sans-serif;color:#8AA3BC">More filters</span>
+      </div>
+      <div style="flex:1"></div>
+      <span style="font:400 11.5px 'JetBrains Mono',monospace;color:#7D93AE">Showing <span style="color:#EAF3FB;font-weight:500">23</span> of 40 runs</span>
+      <span style="font:500 11px 'JetBrains Mono',monospace;color:#2DE2E6;cursor:pointer" style-hover="color:#8B7CFF">CLEAR</span>
+    </div>
+
+    <!-- table -->
+    <div style="border-radius:16px;background:#0A1424;border:1px solid rgba(160,205,245,0.10);box-shadow:0 20px 48px rgba(2,8,18,0.55);overflow:hidden">
+      <div style="display:grid;grid-template-columns:4px 104px minmax(0,1.05fr) minmax(0,1.35fr) 136px 92px 90px 92px 118px;align-items:center;padding:10px 20px 10px 0;background:#0B1627;border-bottom:1px solid rgba(160,205,245,0.10);font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:0.12em;color:#61788F">
+        <span></span><span>RUN ID</span><span>WORKFLOW</span><span>AGENT / OBJECTIVE</span><span>STARTED</span><span>DURATION</span><span>TOKENS</span><span>COST</span><span style="text-align:right">STATUS</span>
+      </div>
+
+      <!-- expanded row (click state) -->
+      <div style="background:#101E33;border-bottom:1px solid rgba(45,226,230,0.18);box-shadow:inset 0 0 40px rgba(45,226,230,0.05)">
+        <div style="display:grid;grid-template-columns:4px 104px minmax(0,1.05fr) minmax(0,1.35fr) 136px 92px 90px 92px 118px;align-items:center;padding:12px 20px 12px 0;cursor:pointer">
+          <span style="align-self:stretch;background:#F8C65D;box-shadow:0 0 14px rgba(248,198,93,0.8)"></span>
+          <span style="display:flex;align-items:center;gap:6px;font:500 11.5px 'JetBrains Mono',monospace;color:#BFF6F7;text-shadow:0 0 12px rgba(45,226,230,0.65);padding-left:16px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2DE2E6" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>#8421</span>
+          <span style="font:500 12px 'Inter',sans-serif;color:#D6D0FF">Priority Refund Review</span>
+          <div style="display:flex;align-items:center;gap:9px;min-width:0">
+            <span style="font:500 12.5px 'Inter',sans-serif;color:#EAF3FB;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Issue refund for order NS-4471</span>
+            <span style="font:400 10px 'JetBrains Mono',monospace;color:#5F7690;flex:none">resolver-v3</span>
+          </div>
+          <span style="font:400 11px 'JetBrains Mono',monospace;color:#7D93AE">Sep 19 · 14:02:11</span>
+          <span style="font:400 11px 'JetBrains Mono',monospace;color:#B9CDE0">6.84s</span>
+          <span style="font:400 11px 'JetBrains Mono',monospace;color:#7D93AE">18.2k</span>
+          <span style="font:500 11px 'JetBrains Mono',monospace;color:#B9CDE0">$1.12</span>
+          <span style="justify-self:end;font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:0.08em;padding:4px 8px;border-radius:5px;color:#F8C65D;background:rgba(248,198,93,0.12);border:1px solid rgba(248,198,93,0.32)">NEEDS REVIEW</span>
+        </div>
+        <div style="display:flex;align-items:stretch;gap:16px;margin:0 20px 16px 24px;padding:14px 16px;border-radius:12px;background:linear-gradient(150deg,rgba(45,226,230,0.08),rgba(139,124,255,0.08));border:1px solid rgba(160,222,245,0.16);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
+          <div style="display:flex;flex-direction:column;gap:7px;min-width:190px">
+            <span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:0.12em;color:#7D93AE">TRACE PREVIEW</span>
+            <div style="display:flex;align-items:center;gap:5px">
+              <span style="width:9px;height:9px;border-radius:50%;background:#55D98B"></span><span style="flex:1;height:2px;background:rgba(150,195,235,0.25)"></span>
+              <span style="width:9px;height:9px;border-radius:50%;background:#55D98B"></span><span style="flex:1;height:2px;background:rgba(150,195,235,0.25)"></span>
+              <span style="width:9px;height:9px;border-radius:50%;background:#5AA8FF"></span><span style="flex:1;height:2px;background:rgba(150,195,235,0.25)"></span>
+              <span style="width:9px;height:9px;border-radius:50%;background:#F8C65D;box-shadow:0 0 10px #F8C65D"></span><span style="flex:1;height:2px;background:rgba(150,195,235,0.18)"></span>
+              <span style="width:9px;height:9px;border-radius:50%;background:rgba(150,195,235,0.25)"></span>
+            </div>
+            <span style="font:400 10.5px 'JetBrains Mono',monospace;color:#6F87A3">9 steps · 2 tool calls · 1 policy hit</span>
+          </div>
+          <div style="width:1px;background:rgba(160,205,245,0.12)"></div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:0.12em;color:#7D93AE">RISK LEVEL</span>
+            <span style="font:600 13px 'Space Grotesk',sans-serif;color:#F26C78">HIGH · 0.87</span>
+            <span style="font:400 10.5px 'JetBrains Mono',monospace;color:#6F87A3">refund.cap.tier2 breached</span>
+          </div>
+          <div style="width:1px;background:rgba(160,205,245,0.12)"></div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:0.12em;color:#7D93AE">DECISION</span>
+            <span style="font:600 13px 'Space Grotesk',sans-serif;color:#EAF3FB">Refund $420 approved</span>
+            <span style="font:400 10.5px 'JetBrains Mono',monospace;color:#6F87A3">confidence 0.64 · unsigned</span>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font:600 10.5px 'JetBrains Mono',monospace;letter-spacing:0.06em;color:#BFF6F7;border:1px solid rgba(45,226,230,0.45);border-radius:8px;padding:9px 14px;cursor:pointer" style-hover="background:rgba(45,226,230,0.14);box-shadow:0 0 20px rgba(45,226,230,0.22)">OPEN RUN INSPECTOR →</span>
+          </div>
+        </div>
+      </div>
+
+      <sc-for list="{{ runs }}" as="r" hint-placeholder-count="10">
+        <div style="display:grid;grid-template-columns:4px 104px minmax(0,1.05fr) minmax(0,1.35fr) 136px 92px 90px 92px 118px;align-items:center;padding:12px 20px 12px 0;border-bottom:1px solid rgba(160,205,245,0.06);cursor:pointer;transition:background .15s ease,box-shadow .15s ease" style-hover="background:#111F34;box-shadow:inset 0 0 0 1px rgba(45,226,230,0.16),0 8px 22px rgba(0,0,0,0.35)">
+          <span style="align-self:stretch;background:{{ r.dot }};opacity:0.85"></span>
+          <span style="font:500 11.5px 'JetBrains Mono',monospace;color:#9FC9E8;padding-left:16px;transition:color .15s ease,text-shadow .15s ease" style-hover="color:#BFF6F7;text-shadow:0 0 12px rgba(45,226,230,0.7)">#{{ r.id }}</span>
+          <span style="font:400 12px 'Inter',sans-serif;color:#A8BDD4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:10px">{{ r.workflow }}</span>
+          <div style="display:flex;align-items:center;gap:9px;min-width:0;padding-right:10px">
+            <span style="font:500 12.5px 'Inter',sans-serif;color:#DCE8F5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.objective }}</span>
+            <span style="font:400 10px 'JetBrains Mono',monospace;color:#5F7690;flex:none">{{ r.agent }}</span>
+          </div>
+          <span style="font:400 11px 'JetBrains Mono',monospace;color:#7D93AE">{{ r.started }}</span>
+          <span style="font:400 11px 'JetBrains Mono',monospace;color:#B9CDE0">{{ r.latency }}</span>
+          <span style="font:400 11px 'JetBrains Mono',monospace;color:#7D93AE">{{ r.tokens }}</span>
+          <span style="font:500 11px 'JetBrains Mono',monospace;color:#B9CDE0">{{ r.cost }}</span>
+          <span style="justify-self:end;font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:0.08em;padding:4px 8px;border-radius:5px;color:{{ r.dot }};background:{{ r.chipBg }};border:1px solid {{ r.chipBorder }}">{{ r.status }}</span>
+        </div>
+      </sc-for>
+
+      <!-- pagination -->
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:linear-gradient(0deg,rgba(11,22,39,0.95),rgba(10,20,36,0.6));border-top:1px solid rgba(160,205,245,0.10)">
+        <span style="font:400 11px 'JetBrains Mono',monospace;color:#6F87A3">Rows 1–11 of 23 filtered</span>
+        <div style="flex:1"></div>
+        <span style="display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:1px solid rgba(160,205,245,0.10);opacity:.45;cursor:not-allowed">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5E748F" stroke-width="2"><path d="m14 6-6 6 6 6"/></svg>
+        </span>
+        <span style="display:grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border-radius:8px;font:600 11.5px 'JetBrains Mono',monospace;color:#061020;background:linear-gradient(140deg,#7DEDF0,#2DE2E6);box-shadow:0 0 20px rgba(45,226,230,0.35);cursor:pointer">1</span>
+        <span style="display:grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border-radius:8px;font:500 11.5px 'JetBrains Mono',monospace;color:#A8BDD4;border:1px solid rgba(160,205,245,0.12);cursor:pointer" style-hover="color:#BFF6F7;border:1px solid rgba(45,226,230,0.45);box-shadow:0 0 16px rgba(45,226,230,0.16)">2</span>
+        <span style="display:grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border-radius:8px;font:500 11.5px 'JetBrains Mono',monospace;color:#A8BDD4;border:1px solid rgba(160,205,245,0.12);cursor:pointer" style-hover="color:#BFF6F7;border:1px solid rgba(45,226,230,0.45);box-shadow:0 0 16px rgba(45,226,230,0.16)">3</span>
+        <span style="font:500 11.5px 'JetBrains Mono',monospace;color:#4A5D73;padding:0 2px">…</span>
+        <span style="display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:1px solid rgba(139,124,255,0.35);cursor:pointer" style-hover="border:1px solid rgba(139,124,255,0.75);box-shadow:0 0 18px rgba(139,124,255,0.22)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B5ABFC" stroke-width="2"><path d="m10 6 6 6-6 6"/></svg>
+        </span>
+        <div style="width:1px;height:22px;background:rgba(160,205,245,0.14);margin:0 4px"></div>
+        <span style="font:400 11px 'JetBrains Mono',monospace;color:#6F87A3;cursor:pointer" style-hover="color:#BFF6F7">11 / page</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- variant: zero results -->
+<div data-screen-label="02b Empty state" style="position:relative;width:1600px;height:430px;margin-top:-4px;background:linear-gradient(160deg,#050D18,#07111F);overflow:hidden;font-family:'Inter',system-ui,sans-serif;border-top:1px solid rgba(160,205,245,0.08)">
+  <div style="position:absolute;top:-180px;left:40%;width:700px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(139,124,255,0.14),rgba(139,124,255,0) 68%);pointer-events:none"></div>
+  <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(150,190,235,0.10) 1px,transparent 1px);background-size:26px 26px;opacity:0.45;pointer-events:none"></div>
+  <div style="position:relative;padding:22px 32px 0 108px">
+    <span style="font:500 10px 'JetBrains Mono',monospace;letter-spacing:0.14em;color:#6F87A3">VARIANT · ZERO RESULTS</span>
+  </div>
+  <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;margin:26px auto 0;max-width:560px;padding:38px 40px;border-radius:18px;background:linear-gradient(150deg,rgba(40,58,86,0.38),rgba(12,22,38,0.55));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(160,205,245,0.14);box-shadow:0 24px 56px rgba(2,8,18,0.6)">
+    <svg width="62" height="62" viewBox="0 0 24 24" fill="none" stroke="rgba(45,226,230,0.55)" stroke-width="1.1"><circle cx="11" cy="11" r="7.2"/><path d="m16.4 16.4 4.4 4.4"/><path d="M8.2 11h5.6" stroke="rgba(139,124,255,0.8)"/></svg>
+    <span style="font:600 17px 'Space Grotesk',sans-serif;color:#EAF3FB">No runs match these filters</span>
+    <span style="font:400 12.5px/1.6 'Inter',sans-serif;color:#8AA3BC;text-align:center">Nothing in <span style="font-family:'JetBrains Mono',monospace;color:#B9CDE0">Sep 05 → Sep 19</span> matches workflow <span style="font-family:'JetBrains Mono',monospace;color:#D6D0FF">API Anomaly Investigator</span> with status <span style="font-family:'JetBrains Mono',monospace;color:#F5959D">failed</span>. Widen the date range or clear a filter.</span>
+    <div style="display:flex;gap:9px;margin-top:6px">
+      <span style="font:600 10.5px 'JetBrains Mono',monospace;letter-spacing:0.06em;color:#BFF6F7;border:1px solid rgba(45,226,230,0.45);border-radius:8px;padding:9px 15px;cursor:pointer" style-hover="background:rgba(45,226,230,0.14);box-shadow:0 0 20px rgba(45,226,230,0.22)">CLEAR ALL FILTERS</span>
+      <span style="font:600 10.5px 'JetBrains Mono',monospace;letter-spacing:0.06em;color:#A8BDD4;border:1px solid rgba(160,205,245,0.16);border-radius:8px;padding:9px 15px;cursor:pointer" style-hover="color:#D6D0FF;border:1px solid rgba(139,124,255,0.55)">EXPAND TO 30 DAYS</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:1680}}">
+const S = {
+  completed: { dot: '#55D98B', chipBg: 'rgba(85,217,139,0.12)', chipBorder: 'rgba(85,217,139,0.30)', status: 'COMPLETED' },
+  review:    { dot: '#F8C65D', chipBg: 'rgba(248,198,93,0.12)', chipBorder: 'rgba(248,198,93,0.32)', status: 'NEEDS REVIEW' },
+  failed:    { dot: '#F26C78', chipBg: 'rgba(242,108,120,0.12)', chipBorder: 'rgba(242,108,120,0.32)', status: 'FAILED' }
+};
+
+class Component extends DCLogic {
+  renderVals() {
+    const rows = [
+      ['8420', 'Enterprise Ticket Triage', 'Classify escalation tier · ticket 99184', 'triage-v2', 'Sep 19 · 13:47:03', '2.11s', '6.4k', '$0.31', 'completed'],
+      ['8419', 'Priority Refund Review', 'Draft response · billing dispute', 'resolver-v3', 'Sep 19 · 13:29:55', '3.62s', '11.8k', '$0.64', 'completed'],
+      ['8418', 'Weekly Account Health Brief', 'Reconcile subscription state', 'ledger-v1', 'Sep 19 · 12:58:40', '12.40s', '24.9k', '$1.48', 'failed'],
+      ['8417', 'Weekly Account Health Brief', 'Summarise 14 support threads', 'digest-v2', 'Sep 19 · 12:31:18', '4.05s', '31.2k', '$0.88', 'completed'],
+      ['8416', 'Priority Refund Review', 'Approve goodwill credit · $40', 'resolver-v3', 'Sep 19 · 11:52:07', '2.88s', '9.1k', '$0.42', 'review'],
+      ['8415', 'API Anomaly Investigator', 'Trace 502 spike · gateway-eu', 'sentinel-v1', 'Sep 19 · 10:44:29', '8.96s', '19.7k', '$1.04', 'completed'],
+      ['8414', 'Enterprise Ticket Triage', 'Route VIP ticket to tier-3 queue', 'triage-v2', 'Sep 19 · 09:58:12', '1.94s', '5.2k', '$0.26', 'completed'],
+      ['8413', 'API Anomaly Investigator', 'Correlate latency regression · v4.2', 'sentinel-v1', 'Sep 18 · 23:11:40', '15.32s', '28.4k', '$1.61', 'failed'],
+      ['8412', 'Priority Refund Review', 'Decline duplicate refund claim', 'resolver-v3', 'Sep 18 · 21:37:55', '3.10s', '10.3k', '$0.55', 'completed'],
+      ['8411', 'Weekly Account Health Brief', 'Draft churn-risk brief · 8 accounts', 'digest-v2', 'Sep 18 · 19:02:33', '6.47s', '36.8k', '$1.12', 'completed'],
+      ['8410', 'Enterprise Ticket Triage', 'Merge duplicate incident threads', 'triage-v2', 'Sep 18 · 17:24:06', '2.55s', '7.6k', '$0.34', 'completed']
+    ];
+    return {
+      runs: rows.map(([id, workflow, objective, agent, started, latency, tokens, cost, k]) =>
+        Object.assign({ id, workflow, objective, agent, started, latency, tokens, cost }, S[k]))
+    };
+  }
+}
+
+</script>
+</body>
+</html>
