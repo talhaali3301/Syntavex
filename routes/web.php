@@ -1,22 +1,14 @@
 <?php
 
+use App\Http\Controllers\CoverController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReviewQueueController;
 use App\Http\Controllers\RunInspectorController;
 use App\Http\Controllers\RunsController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+Route::get('/', [CoverController::class, 'index'])->name('cover');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])

@@ -126,9 +126,9 @@ const toggleRow = (id: number): void => {
     <AppLayout>
         <!-- Top bar -->
         <header
-            class="sticky top-0 z-20 flex h-[74px] flex-wrap items-center gap-4 border-b border-[rgba(160,205,245,0.09)] bg-gradient-to-b from-[rgba(14,26,44,0.82)] to-[rgba(9,18,32,0.42)] px-8 backdrop-blur-lg"
+            class="sticky top-0 z-20 flex min-h-[74px] flex-wrap items-center gap-x-4 gap-y-3 border-b border-[rgba(160,205,245,0.09)] bg-gradient-to-b from-[rgba(14,26,44,0.82)] to-[rgba(9,18,32,0.42)] px-8 py-[14px] backdrop-blur-lg"
         >
-            <div class="flex flex-col gap-0.5">
+            <div class="flex min-w-0 flex-col gap-0.5">
                 <div class="flex items-center gap-2.5">
                     <h1 class="font-display text-[17px] font-semibold -tracking-[0.01em] text-ink-100">
                         Runs Explorer
@@ -139,20 +139,20 @@ const toggleRow = (id: number): void => {
                         DIRECTORY
                     </span>
                 </div>
-                <p class="font-mono text-[11.5px] text-ink-700">
+                <p class="truncate font-mono text-[11.5px] text-ink-700">
                     workspace / {{ workspace.slug }} · {{ workspace.tier.toLowerCase() }} / runs
                 </p>
             </div>
 
-            <div class="ml-auto flex items-center gap-3">
+            <div class="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3">
                 <div
-                    class="flex h-9 min-w-[26rem] items-center gap-2.5 rounded-[9px] border border-accent-cyan/35 bg-[rgba(10,20,35,0.75)] px-3.5 shadow-[0_0_22px_rgba(45,226,230,0.10)] focus-within:border-accent-cyan/70"
+                    class="flex h-9 w-full min-w-[15rem] max-w-[26rem] flex-1 items-center gap-2.5 rounded-[9px] border border-accent-cyan/35 bg-[rgba(10,20,35,0.75)] px-3.5 shadow-[0_0_22px_rgba(45,226,230,0.10)] focus-within:border-accent-cyan/70"
                 >
                     <svg class="h-3.5 w-3.5 shrink-0 text-accent-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <circle cx="11" cy="11" r="7" />
                         <path d="m16.5 16.5 4 4" />
                     </svg>
-                    <span class="shrink-0 font-mono text-xs text-glow-blue" aria-hidden="true">trace:</span>
+                    <span class="hidden shrink-0 font-mono text-xs text-glow-blue sm:inline" aria-hidden="true">trace:</span>
                     <label for="runs-search" class="sr-only">
                         Search by trace ID or workflow name. Shortcut: {{ shortcutSpoken }}
                     </label>
@@ -165,7 +165,7 @@ const toggleRow = (id: number): void => {
                         class="min-w-0 flex-1 border-0 bg-transparent p-0 font-mono text-xs text-ink-100 placeholder:text-[#55697F] focus:ring-0"
                     />
                     <kbd
-                        class="shrink-0 rounded border border-[rgba(160,205,245,0.14)] px-[5px] py-0.5 font-mono text-[10px] font-medium text-ink-950"
+                        class="hidden shrink-0 rounded border border-[rgba(160,205,245,0.14)] px-[5px] py-0.5 font-mono text-[10px] font-medium text-ink-950 sm:inline-block"
                         aria-hidden="true"
                     >
                         {{ shortcutChip }}

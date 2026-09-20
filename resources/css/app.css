@@ -25,6 +25,34 @@
     .panel-eyebrow {
         @apply text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white/40;
     }
+
+    .field-label {
+        @apply block text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-ink-600;
+    }
+
+    .field-input {
+        @apply w-full rounded-lg border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-ink-100 placeholder:text-ink-900 focus:border-accent-cyan/50 focus:ring-2 focus:ring-accent-cyan/30;
+    }
+
+    .field-error {
+        @apply text-xs text-status-critical;
+    }
+
+    .btn-glass {
+        @apply inline-flex h-10 items-center gap-2 rounded-xl border px-5 text-sm font-semibold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn-glass-primary {
+        @apply border-accent-cyan/45 bg-[linear-gradient(145deg,rgba(45,226,230,0.22),rgba(139,124,255,0.20))] text-[#DFFAFB] shadow-[0_0_26px_rgba(45,226,230,0.18)] hover:brightness-110;
+    }
+
+    .btn-glass-ghost {
+        @apply border-[rgba(160,205,245,0.16)] bg-white/[0.03] font-medium text-ink-300 hover:border-accent-cyan/40 hover:text-glow-cyan;
+    }
+
+    .btn-glass-danger {
+        @apply border-status-critical/45 bg-status-critical/[0.12] text-[#FFC3C9] hover:border-status-critical/70 hover:bg-status-critical/[0.18];
+    }
 }
 
 @layer utilities {
@@ -57,6 +85,10 @@
 
     .link-flow {
         animation: link-flow 1.6s linear infinite;
+    }
+
+    .orbit-drift {
+        animation: orbit-drift 72s linear infinite;
     }
 
     /*
@@ -129,6 +161,12 @@
 @keyframes link-flow {
     to {
         stroke-dashoffset: -16;
+    }
+}
+
+@keyframes orbit-drift {
+    to {
+        transform: rotate(360deg);
     }
 }
 

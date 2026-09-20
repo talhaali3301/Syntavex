@@ -648,3 +648,64 @@ export interface ReviewQueueProps {
     reviewers: ReviewerLoad;
     constellation: QueueConstellation;
 }
+
+/* -------------------------------------------------------------------------
+ * Cover
+ * ---------------------------------------------------------------------- */
+
+export type SignalAccent = 'cyan' | 'violet' | 'emerald' | 'amber';
+
+export interface CoverSignal {
+    key: string;
+    label: string;
+    display: string;
+    caption: string;
+    accent: SignalAccent;
+}
+
+export interface CoverPulse {
+    live: boolean;
+    latest_run_key: string | null;
+    latest_run_label: string;
+    tokens_display: string;
+    spend_display: string;
+    autonomy_display: string;
+}
+
+export interface CoverConstellationNode {
+    id: number;
+    label: string;
+    short_label: string;
+    slug: string;
+    runs: number;
+    runs_label: string;
+    orbit: number;
+    x: number;
+    y: number;
+    anchor: 'start' | 'middle' | 'end';
+    radius: number;
+    tone: StatusTone;
+}
+
+export interface CoverConstellation {
+    nodes: CoverConstellationNode[];
+    orbits: number[];
+    core_display: string;
+    caption: string;
+}
+
+export interface CoverEntry {
+    key: string;
+    label: string;
+    description: string;
+    href: string;
+    meta: string;
+}
+
+export interface CoverProps {
+    workspace: Workspace | null;
+    signals: CoverSignal[];
+    pulse: CoverPulse;
+    constellation: CoverConstellation;
+    entries: CoverEntry[];
+}

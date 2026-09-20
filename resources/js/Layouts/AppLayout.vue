@@ -9,8 +9,9 @@ type NavItem = {
     note?: string;
 };
 
-/** Order follows the mockup rail: grid, pulse, graph, shield, queue. */
+/** Order follows the mockup rail: orbit, grid, pulse, graph, shield, queue. */
 const navItems: NavItem[] = [
+    { label: 'Cover', href: '/' },
     { label: 'Command Centre', href: '/dashboard' },
     { label: 'Runs', href: '/runs' },
     { label: 'Telemetry', note: 'Telemetry — not built yet' },
@@ -36,6 +37,11 @@ const currentLabel = computed(() => {
 });
 
 const accountName = computed(() => page.props.auth?.user?.name ?? '');
+
+/** The Cover sits on a public route, so the rail has to render signed out too. */
+const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
+
+const onProfile = computed(() => page.url.startsWith('/profile'));
 
 /** "Mara Kessler" -> "MK"; a single name falls back to its first two letters. */
 const initials = computed(() => {
@@ -109,7 +115,7 @@ const classesFor = (item: NavItem): string => {
             aria-label="Primary"
         >
             <Link
-                href="/dashboard"
+                href="/"
                 class="mb-4 grid h-[38px] w-[38px] cursor-pointer place-items-center rounded-[11px] border border-accent-cyan/45 bg-[linear-gradient(145deg,rgba(45,226,230,0.28),rgba(139,124,255,0.28))] shadow-[0_0_22px_rgba(45,226,230,0.35)] transition duration-200 hover:shadow-[0_0_28px_rgba(45,226,230,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
                 aria-label="SyntaVex home"
             >
@@ -146,7 +152,19 @@ const classesFor = (item: NavItem): string => {
                         aria-hidden="true"
                     />
                     <svg
-                        v-if="item.label === 'Command Centre'"
+                        v-if="item.label === 'Cover'"
+                        class="h-[19px] w-[19px]"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="3.4" />
+                        <ellipse cx="12" cy="12" rx="9.4" ry="4.6" transform="rotate(-28 12 12)" />
+                    </svg>
+                    <svg
+                        v-else-if="item.label === 'Command Centre'"
                         class="h-[19px] w-[19px]"
                         viewBox="0 0 24 24"
                         fill="none"
@@ -241,11 +259,34 @@ const classesFor = (item: NavItem): string => {
             </button>
 
             <Link
+                v-if="isAuthenticated"
                 href="/profile"
                 class="grid h-[34px] w-[34px] cursor-pointer place-items-center rounded-full bg-[linear-gradient(145deg,#8B7CFF,#2DE2E6)] font-display text-xs font-semibold text-[#061020] shadow-[0_0_18px_rgba(139,124,255,0.4)] transition duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
+                :class="onProfile ? 'ring-2 ring-accent-cyan ring-offset-2 ring-offset-navy-base' : ''"
+                :aria-current="onProfile ? 'page' : undefined"
                 :aria-label="accountName ? `Profile — ${accountName}` : 'Profile'"
             >
                 {{ initials }}
+            </Link>
+
+            <Link
+                v-else
+                href="/login"
+                :class="`${TILE} ${LINKED}`"
+                aria-label="Sign in"
+                title="Sign in"
+            >
+                <svg
+                    class="h-[19px] w-[19px]"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    aria-hidden="true"
+                >
+                    <path d="M10 7.5 14.5 12 10 16.5M14.5 12H4" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M9 4h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H9" />
+                </svg>
             </Link>
         </aside>
 
