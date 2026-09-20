@@ -37,6 +37,34 @@ class RunsExplorerTest extends TestCase
         return WorkflowRun::query()->where('run_key', '8421')->firstOrFail();
     }
 
+    /** The newest run in the workspace, which the screen's date window hangs off. */
+    private function anchor(): Carbon
+    {
+        return Carbon::parse(WorkflowRun::query()->max('created_at'));
+    }
+
+    /**
+     * A window of $days ending $endingDaysAgo days before the newest run.
+     * Ranges are derived from the data rather than typed in, so they keep
+     * covering the seeded runs however long after the seed the suite runs.
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function window(int $days, int $endingDaysAgo = 0): array
+    {
+        $to = $this->anchor()->subDays($endingDaysAgo)->startOfDay();
+
+        return [$to->copy()->subDays($days - 1), $to];
+    }
+
+    /** The same window, as a `from=...&to=...` query string. */
+    private function windowQuery(int $days, int $endingDaysAgo = 0): string
+    {
+        [$from, $to] = $this->window($days, $endingDaysAgo);
+
+        return sprintf('from=%s&to=%s', $from->toDateString(), $to->toDateString());
+    }
+
     private function visit(string $uri): TestResponse
     {
         return $this->actingAs($this->user)->get($uri);
@@ -122,14 +150,51 @@ class RunsExplorerTest extends TestCase
 
     public function test_counts_are_pluralised_in_the_copy_they_appear_in(): void
     {
-        $this->assertSame('1 run · 14 days', $this->props('/runs?search=8421')['distribution']['scope_label']);
+        // The seeder scatters run timestamps at random across the last 14
+        // days, so any window over the seeded data holds an unpredictable
+        // number of runs. Park a known handful on consecutive days a year
+        // back, well clear of the seeded band, and read the copy off those.
+        $origin = $this->anchor()->subYear()->startOfDay();
+
+        $parked = WorkflowRun::query()
+            ->whereKeyNot($this->flagship()->getKey())
+            ->orderBy('id')
+            ->take(3)
+            ->pluck('id');
+
+        foreach ($parked as $offset => $id) {
+            WorkflowRun::query()->whereKey($id)->update([
+                'created_at' => $origin->copy()->addDays($offset)->setTime(9, 0),
+            ]);
+        }
+
+        $first = $origin->toDateString();
+        $last = $origin->copy()->addDays(2)->toDateString();
+        $empty = $origin->copy()->subDay()->toDateString();
+
+        // One run, one day: both halves singular.
         $this->assertSame(
-            '14 runs · 6 days',
-            $this->props('/runs?from=2026-09-05&to=2026-09-10')['distribution']['scope_label'],
+            '1 run · 1 day',
+            $this->props("/runs?from={$first}&to={$first}")['distribution']['scope_label'],
         );
+
+        // Three runs over three days: both halves plural.
+        $this->assertSame(
+            '3 runs · 3 days',
+            $this->props("/runs?from={$first}&to={$last}")['distribution']['scope_label'],
+        );
+
+        // Zero is plural, and the empty day next door proves the parked runs
+        // are the only thing being counted.
         $this->assertSame(
             '0 runs · 1 day',
-            $this->props('/runs?from=2020-01-01&to=2020-01-01')['distribution']['scope_label'],
+            $this->props("/runs?from={$empty}&to={$empty}")['distribution']['scope_label'],
+        );
+
+        // A singular count beside a plural window, off the default 14 days.
+        $this->assertSame(
+            '1 run · 14 days',
+            $this->props('/runs?search=8421')['distribution']['scope_label'],
         );
     }
 
@@ -140,25 +205,19 @@ class RunsExplorerTest extends TestCase
         $this->assertSame(14, $this->props('/runs')['distribution']['window_days']);
         $this->assertSame(
             90,
-            $this->props('/runs?from=2026-06-22&to=2026-09-19')['distribution']['window_days'],
+            $this->props('/runs?'.$this->windowQuery(90, 1))['distribution']['window_days'],
         );
         $this->assertSame(
             6,
-            $this->props('/runs?from=2026-09-05&to=2026-09-10')['distribution']['window_days'],
+            $this->props('/runs?'.$this->windowQuery(6, 10))['distribution']['window_days'],
         );
     }
 
     public function test_the_rolling_cost_window_follows_the_selected_range(): void
     {
-        $anchor = Carbon::parse(WorkflowRun::query()->max('created_at'));
-        $to = $anchor->copy()->subDays(4);
-        $from = $to->copy()->subDays(6);
+        [, $to] = $this->window(7, 4);
 
-        $props = $this->props(sprintf(
-            '/runs?from=%s&to=%s',
-            $from->toDateString(),
-            $to->toDateString(),
-        ));
+        $props = $this->props('/runs?'.$this->windowQuery(7, 4));
 
         // Regression: the window used to hang off the newest run in the whole
         // workspace, so every historic range read "$0.00 / 3d".
@@ -223,8 +282,10 @@ class RunsExplorerTest extends TestCase
 
     public function test_an_inverted_date_range_is_swapped_rather_than_returning_nothing(): void
     {
-        $forwards = $this->props('/runs?from=2026-09-05&to=2026-09-10');
-        $backwards = $this->props('/runs?from=2026-09-10&to=2026-09-05');
+        [$from, $to] = $this->window(6, 10);
+
+        $forwards = $this->props(sprintf('/runs?from=%s&to=%s', $from->toDateString(), $to->toDateString()));
+        $backwards = $this->props(sprintf('/runs?from=%s&to=%s', $to->toDateString(), $from->toDateString()));
 
         $this->assertSame($forwards['pagination']['total'], $backwards['pagination']['total']);
         $this->assertSame($forwards['filters']['range_label'], $backwards['filters']['range_label']);
@@ -305,7 +366,7 @@ class RunsExplorerTest extends TestCase
 
     public function test_the_volume_chart_is_anchored_to_the_newest_run(): void
     {
-        $anchor = Carbon::parse(WorkflowRun::query()->max('created_at'));
+        $anchor = $this->anchor();
         $volume = $this->props('/runs')['volume'];
 
         $this->assertCount(14, $volume['bars']);
@@ -438,7 +499,9 @@ class RunsExplorerTest extends TestCase
 
     public function test_the_export_matches_the_current_filtered_state(): void
     {
-        foreach (['status=failed', 'status=completed', 'search=8421', 'from=2026-09-05&to=2026-09-10'] as $query) {
+        $queries = ['status=failed', 'status=completed', 'search=8421', $this->windowQuery(6, 10)];
+
+        foreach ($queries as $query) {
             $expected = $this->props("/runs?{$query}")['pagination']['total'];
             $rows = $this->csvRows($this->visit("/runs/export?{$query}"));
             array_shift($rows);
