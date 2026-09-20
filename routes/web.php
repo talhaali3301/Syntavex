@@ -30,6 +30,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/runs/{run}', [RunsController::class, 'show'])
         ->whereNumber('run')
         ->name('runs.show');
+
+    // Placeholder until the Review Queue (Human-in-the-Loop Desk) is built.
+    Route::get('/reviews', fn () => Inertia::render('Reviews/Index'))
+        ->name('reviews.index');
 });
 
 Route::middleware('auth')->group(function () {
