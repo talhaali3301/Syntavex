@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReviewQueueController;
 use App\Http\Controllers\RunInspectorController;
 use App\Http\Controllers\RunsController;
 use App\Http\Controllers\ProfileController;
@@ -31,9 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('run')
         ->name('runs.show');
 
-    // Placeholder until the Review Queue (Human-in-the-Loop Desk) is built.
-    Route::get('/reviews', fn () => Inertia::render('Reviews/Index'))
-        ->name('reviews.index');
+    Route::get('/reviews', [ReviewQueueController::class, 'index'])->name('reviews.index');
+
+    Route::post('/reviews/{approval}/decision', [ReviewQueueController::class, 'decide'])
+        ->name('reviews.decide');
 });
 
 Route::middleware('auth')->group(function () {
@@ -43,3 +45,5 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+

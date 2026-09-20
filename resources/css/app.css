@@ -58,6 +58,38 @@
     .link-flow {
         animation: link-flow 1.6s linear infinite;
     }
+
+    /*
+     * Freeze Frame: the intercepted action is shown as a stilled screen —
+     * evidence drained of colour, the card itself ringed by a crimson halo
+     * that keeps breathing so it never reads as merely disabled.
+     */
+    .freeze-halo::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: inherit;
+        pointer-events: none;
+        box-shadow:
+            0 0 0 1px rgb(242 108 120 / 0.55),
+            0 0 34px rgb(242 108 120 / 0.34),
+            0 0 90px rgb(242 108 120 / 0.2);
+        animation: freeze-halo 2.6s ease-in-out infinite;
+    }
+
+    .freeze-still {
+        filter: saturate(0.32) brightness(0.9) contrast(0.96);
+    }
+}
+
+@keyframes freeze-halo {
+    0%,
+    100% {
+        opacity: 0.38;
+    }
+    50% {
+        opacity: 1;
+    }
 }
 
 @keyframes pulse-scroll {

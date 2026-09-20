@@ -547,3 +547,104 @@ export interface RunInspectorProps {
     header: HeaderStat[];
     related: RelatedRun[];
 }
+
+/* -------------------------------------------------------------------------
+ * Review Queue (Human-in-the-Loop Desk)
+ * ---------------------------------------------------------------------- */
+
+export type ReviewDecision = 'approve' | 'reject' | 'request_changes';
+
+export interface ReviewRisk {
+    level: RiskLevel;
+    level_label: string;
+    score: number;
+    score_label: string;
+    percent: number;
+    tone: StatusTone;
+    confidence_label: string | null;
+}
+
+export interface ReviewIntercept {
+    rule: string;
+    status_label: string;
+    measure: string | null;
+    irreversible: boolean;
+}
+
+export interface ReviewReadout {
+    title: string;
+    meta: string;
+    lines: { text: string; tone: 'ink' | 'critical' }[];
+}
+
+export interface ReviewQueueItem {
+    id: number;
+    run_id: number;
+    run_key: string;
+    workflow: string | null;
+    agent: string;
+    objective: string;
+    headline: string;
+    summary: string;
+    risk: ReviewRisk;
+    category: 'DESTRUCTIVE' | 'LOW CONF' | 'POLICY';
+    impact_label: string | null;
+    waiting_seconds: number;
+    waiting_label: string;
+    sla_label: string;
+    /** Critical severity — renders as a Freeze Frame rather than a row. */
+    frozen: boolean;
+    intercept: ReviewIntercept;
+    readout: ReviewReadout;
+    impact_rows: { label: string; value: string }[];
+    detail: InspectorRun;
+}
+
+export interface ReviewStats {
+    pending: number;
+    critical: number;
+    average_wait_label: string;
+    oldest_wait_label: string | null;
+    intercepted: number;
+    window_label: string;
+    sla_label: string;
+    approved: number;
+    rejected: number;
+    decisions: {
+        date: string;
+        label: string;
+        approved: number;
+        rejected: number;
+    }[];
+}
+
+export interface ResolvedReview {
+    id: number;
+    run_id: number;
+    run_key: string | null;
+    workflow: string | null;
+    status: string;
+    status_label: string;
+    tone: StatusTone;
+    by: string | null;
+    at_label: string | null;
+}
+
+export interface ReviewerLoad {
+    rows: { name: string; is_you: boolean; decisions: number }[];
+    max: number;
+    unassigned_label: string;
+}
+
+export interface QueueConstellation {
+    nodes: { run_key: string; level: RiskLevel; x: number; y: number }[];
+    caption: string;
+}
+
+export interface ReviewQueueProps {
+    queue: ReviewQueueItem[];
+    stats: ReviewStats;
+    resolved: ResolvedReview[];
+    reviewers: ReviewerLoad;
+    constellation: QueueConstellation;
+}
