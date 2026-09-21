@@ -11,23 +11,6 @@ const emit = defineEmits<{
     (e: 'toggle', id: number): void;
 }>();
 
-/**
- * The mockup track is 650px of fixed columns, so columns are shed as the
- * viewport narrows rather than letting the fixed cells crush the two fluid
- * ones. The track and the per-column breakpoints below are the single source
- * of truth, and each `AT_*` class is applied to both the header cell and the
- * row cell so a column can never survive in one and vanish from the other.
- *
- * The thresholds are deliberately not Tailwind's md/lg/xl. Those measure the
- * viewport, but the table only ever gets `viewport - 140px` (76px nav rail +
- * 2×32px gutters), so at a 1024px viewport the lg track was being handed 884px
- * and the objective cell collapsed to an ellipsis. Each threshold is therefore
- * its track's fixed width plus the ~520px the two fluid cells need to stay
- * readable, plus that 140px of chrome.
- *
- * Below the dropped columns' thresholds the values move into the objective
- * cell's meta line rather than leaving the screen.
- */
 const GRID = [
     'grid items-center',
     'grid-cols-[4px_104px_minmax(0,1fr)_118px]',
@@ -42,7 +25,6 @@ const AT_TIMING = 'hidden min-[1150px]:block';
 
 const AT_USAGE = 'hidden min-[1330px]:block';
 
-/** Inverses of the above: a value shows in the meta line exactly while its own column is gone. */
 const BELOW_WORKFLOW = 'min-[960px]:hidden';
 
 const BELOW_TIMING = 'min-[1150px]:hidden';
@@ -75,7 +57,6 @@ const PILL: Record<StatusTone, string> = {
     <div
         class="glass-panel glass-panel-solid"
     >
-        <!-- Header -->
         <div
             :class="GRID"
             class="border-b border-[rgba(160,205,245,0.10)] bg-panel-head py-2.5 pr-5 font-mono text-[9.5px] font-medium tracking-[0.12em] text-ink-800"
@@ -92,7 +73,6 @@ const PILL: Record<StatusTone, string> = {
             <span class="text-right">STATUS</span>
         </div>
 
-        <!-- Rows -->
         <div
             v-for="run in runs"
             :key="run.id"

@@ -31,8 +31,6 @@ defineProps<{ decision: DecisionRecord }>();
 
             <div class="flex-1" />
 
-            <!-- Verdicts are signed at the desk, so this hands the run over
-                 rather than duplicating the decision controls here. -->
             <Link
                 v-if="decision.pending"
                 href="/reviews"

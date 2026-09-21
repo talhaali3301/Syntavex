@@ -8,9 +8,6 @@ use Illuminate\Validation\Rule;
 
 class ReviewDecisionRequest extends FormRequest
 {
-    /**
-     * @return array<string, mixed>
-     */
     public function rules(): array
     {
         return [

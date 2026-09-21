@@ -14,21 +14,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
-/**
- * Seeds the SyntaVex demo dataset: one workspace, four workflows and 40 runs
- * spread across the last 14 days, including the flagship run #8421 that the
- * product narrative (Human Attention queue) is built around.
- */
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /** Runs are keyed 8382..8421 in chronological order, so #8421 is the newest. */
     private const FIRST_RUN_KEY = 8382;
 
     private const TOTAL_RUNS = 40;
 
-    /** Relative cost weight per step type when splitting a run's duration budget. */
     private const DURATION_WEIGHTS = [
         'webhook' => 1,
         'retrieval' => 3,
@@ -37,7 +30,6 @@ class DatabaseSeeder extends Seeder
         'mutation' => 2,
     ];
 
-    /** Only retrieval and reasoning steps burn tokens. */
     private const TOKEN_WEIGHTS = [
         'webhook' => 0,
         'retrieval' => 2,
@@ -48,7 +40,6 @@ class DatabaseSeeder extends Seeder
 
     private Workspace $workspace;
 
-    /** @var array<string, Workflow> */
     private array $workflows = [];
 
     public function run(): void
@@ -107,16 +98,10 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    /**
-     * 40 run specs: 32 completed, 5 failed, 3 needs_review.
-     *
-     * @return list<array<string, mixed>>
-     */
     private function buildRunSpecs(): array
     {
         $specs = [];
 
-        // Volume per workflow — ticket triage is the busiest, the weekly brief the quietest.
         $volume = [
             'priority-refund-review' => 11,
             'enterprise-ticket-triage' => 15,
@@ -124,13 +109,11 @@ class DatabaseSeeder extends Seeder
             'api-anomaly-investigator' => 10,
         ];
 
-        // The three runs sitting in the Human Attention queue.
         $specs[] = [
             'workflow' => 'priority-refund-review',
             'status' => 'needs_review',
             'scenario' => 'flagship',
             'error_message' => null,
-            // Forced to be the newest run so it lands on run_key 8421.
             'created_at' => now()->subMinutes(47),
         ];
         $specs[] = [
@@ -151,7 +134,6 @@ class DatabaseSeeder extends Seeder
         $volume['priority-refund-review'] -= 2;
         $volume['enterprise-ticket-triage'] -= 1;
 
-        // Five failures, each with a plausible upstream cause.
         $failures = [
             ['priority-refund-review', 'ConnectionRefused: Stripe sandbox'],
             ['enterprise-ticket-triage', 'RateLimitExceeded: HubSpot API'],
@@ -171,7 +153,6 @@ class DatabaseSeeder extends Seeder
             $volume[$slug]--;
         }
 
-        // Everything else completed cleanly.
         foreach ($volume as $slug => $remaining) {
             for ($i = 0; $i < $remaining; $i++) {
                 $specs[] = [
@@ -191,7 +172,6 @@ class DatabaseSeeder extends Seeder
         return $specs;
     }
 
-    /** A timestamp somewhere in the last 14 days that does not look machine-spaced. */
     private function organicTimestamp(?int $minDays = null, ?int $maxDays = null): Carbon
     {
         return now()
@@ -201,9 +181,6 @@ class DatabaseSeeder extends Seeder
             ->subSeconds(random_int(0, 59));
     }
 
-    /**
-     * @param  array<string, mixed>  $spec
-     */
     private function createRun(array $spec, string $runKey): void
     {
         $workflow = $this->workflows[$spec['workflow']];
@@ -261,19 +238,6 @@ class DatabaseSeeder extends Seeder
         $this->createAuditEvents($spec, $run, $createdAt, $cursor);
     }
 
-    // ---------------------------------------------------------------------
-    // Scripted scenarios
-    // ---------------------------------------------------------------------
-
-    /**
-     * Run #8421 — the refund that breached the automated approval ceiling.
-     *
-     * The outage date in the agent's rationale is derived from the run's own
-     * timestamp rather than written in by hand, so the narrative still lines up
-     * with the dates on screen whenever the dataset is reseeded.
-     *
-     * @return list<array<string, mixed>>
-     */
     private function flagshipSteps(Carbon $runAt): array
     {
         $outageDate = $runAt->copy()->subDay()->toDateString();
@@ -328,7 +292,6 @@ class DatabaseSeeder extends Seeder
         ];
     }
 
-    /** @return list<array<string, mixed>> */
     private function goodwillSteps(): array
     {
         return [
@@ -359,7 +322,6 @@ class DatabaseSeeder extends Seeder
         ];
     }
 
-    /** @return list<array<string, mixed>> */
     private function lowConfidenceSteps(): array
     {
         return [
@@ -392,9 +354,6 @@ class DatabaseSeeder extends Seeder
         ];
     }
 
-    /**
-     * @param  list<RunStep>  $steps
-     */
     private function createApprovalRequest(string $scenario, WorkflowRun $run, array $steps, Carbon $at): void
     {
         $gate = collect($steps)->firstWhere('step_type', 'approval_gate');
@@ -417,13 +376,6 @@ class DatabaseSeeder extends Seeder
         ]), $at, $at);
     }
 
-    // ---------------------------------------------------------------------
-    // Generated runs
-    // ---------------------------------------------------------------------
-
-    /**
-     * @return list<array<string, mixed>>
-     */
     private function generatedSteps(string $workflowSlug, string $status, ?string $errorMessage): array
     {
         $catalog = $this->stepCatalog($workflowSlug);
@@ -432,13 +384,12 @@ class DatabaseSeeder extends Seeder
 
         $statuses = array_fill(0, $count, 'completed');
         if ($status === 'failed') {
-            // Fail on the last step reached; nothing downstream ran.
             $statuses[$count - 1] = 'failed';
         }
 
         $durationBudget = random_int(800, 15000);
         $tokenBudget = random_int(2000, 35000);
-        $rate = random_int(50, 57) / 1_000_000; // blended USD per token
+        $usdPerToken = random_int(50, 57) / 1_000_000;
 
         $durations = $this->split($durationBudget, array_map(
             fn (array $s) => self::DURATION_WEIGHTS[$s['type']],
@@ -463,18 +414,13 @@ class DatabaseSeeder extends Seeder
                 $stepTokens,
                 ($definition['in'])(),
                 $failed ? ['error' => $errorMessage, 'retryable' => str_contains((string) $errorMessage, 'Timeout')] : ($definition['out'])(),
-                $stepTokens === null ? null : round($stepTokens * $rate, 4),
+                $stepTokens === null ? null : round($stepTokens * $usdPerToken, 4),
             );
         }
 
         return $steps;
     }
 
-    /**
-     * Ordered step pipeline per workflow; a run executes the first N of these.
-     *
-     * @return list<array{name: string, type: string, in: callable, out: callable}>
-     */
     private function stepCatalog(string $slug): array
     {
         $customer = fn () => 'CUS-'.random_int(1000, 9999);
@@ -564,13 +510,6 @@ class DatabaseSeeder extends Seeder
         };
     }
 
-    // ---------------------------------------------------------------------
-    // Audit trail
-    // ---------------------------------------------------------------------
-
-    /**
-     * @param  array<string, mixed>  $spec
-     */
     private function createAuditEvents(array $spec, WorkflowRun $run, Carbon $startedAt, Carbon $finishedAt): void
     {
         $actor = match ($spec['workflow']) {
@@ -624,13 +563,6 @@ class DatabaseSeeder extends Seeder
         ]), $finishedAt, $finishedAt);
     }
 
-    // ---------------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------------
-
-    /**
-     * @return array<string, mixed>
-     */
     private function step(
         string $name,
         string $type,
@@ -653,12 +585,6 @@ class DatabaseSeeder extends Seeder
         ];
     }
 
-    /**
-     * Split a budget across weighted slots, giving the remainder to the heaviest slot.
-     *
-     * @param  list<int>  $weights
-     * @return list<int>
-     */
     private function split(int $total, array $weights): array
     {
         $sum = array_sum($weights);
@@ -678,14 +604,6 @@ class DatabaseSeeder extends Seeder
         return $parts;
     }
 
-    /**
-     * Save a model with explicit, backdated timestamps.
-     *
-     * @template TModel of Model
-     *
-     * @param  TModel  $model
-     * @return TModel
-     */
     private function persist(Model $model, Carbon $createdAt, Carbon $updatedAt): Model
     {
         $model->created_at = $createdAt;

@@ -19,8 +19,6 @@ const moreOpen = ref(false);
 const from = ref(props.filters.from);
 const to = ref(props.filters.to);
 
-// The range can change without this popover being touched — "Widen to 90 days"
-// on the empty state, or CLEAR — so the inputs follow the server's answer.
 watch(
     () => [props.filters.from, props.filters.to] as const,
     ([nextFrom, nextTo]) => {
@@ -64,7 +62,6 @@ const applyDates = (): void => {
     <div
         class="glass-panel flex flex-wrap items-center gap-2.5 px-3.5 py-2.5"
     >
-        <!-- Status chips -->
         <div class="flex flex-wrap gap-1.5" role="group" aria-label="Filter by status">
             <button
                 v-for="chip in chips"
@@ -88,7 +85,6 @@ const applyDates = (): void => {
 
         <div class="mx-1 h-[26px] w-px bg-[rgba(160,205,245,0.14)]" aria-hidden="true" />
 
-        <!-- Date range -->
         <div class="relative">
             <button
                 type="button"
@@ -131,7 +127,6 @@ const applyDates = (): void => {
             </div>
         </div>
 
-        <!-- Workflow -->
         <div
             class="relative flex h-[34px] items-center gap-2 rounded-lg border border-accent-violet/35 bg-[rgba(10,20,35,0.7)] px-3 shadow-[0_0_18px_rgba(139,124,255,0.12)] transition duration-200 focus-within:border-accent-violet/70 hover:border-accent-violet/70"
         >
@@ -158,7 +153,6 @@ const applyDates = (): void => {
             <span class="sr-only">{{ selectedWorkflow?.name ?? 'All workflows' }}</span>
         </div>
 
-        <!-- More filters (stub) -->
         <div class="relative">
             <button
                 type="button"

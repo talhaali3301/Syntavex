@@ -12,27 +12,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-/**
- * Shapes a single WorkflowRun for the Run Inspector: execution trace, the
- * reasoning timeline, tool-call cards, the policy evaluation and the decision
- * record.
- *
- * Everything is derived from the run's own rows and step payloads. Cross-run
- * context (benchmarks, related runs) is assembled by the controller.
- *
- * Expects `workflow.workspace`, `steps`, `approvalRequests` and `auditEvents`
- * to be eager-loaded.
- *
- * @mixin WorkflowRun
- */
 class RunInspectorResource extends JsonResource
 {
     private const TOOL_CALL_TYPES = ['retrieval', 'mutation'];
 
-    /**
-     * A decision below this confidence cannot be auto-signed — it is the rule
-     * the Human Attention queue exists to enforce.
-     */
     private const SIGN_THRESHOLD = 0.75;
 
     private const STATUS_LABELS = [
@@ -49,7 +32,6 @@ class RunInspectorResource extends JsonResource
         'running' => 'info',
     ];
 
-    /** Trace node colour: step status first, then what kind of work it was. */
     private const STEP_TONES = [
         'failed' => 'critical',
         'blocked' => 'review',
@@ -64,9 +46,6 @@ class RunInspectorResource extends JsonResource
         'webhook' => 'reasoning',
     ];
 
-    /**
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         $steps = $this->steps ?? collect();
@@ -106,10 +85,6 @@ class RunInspectorResource extends JsonResource
         ];
     }
 
-    // -----------------------------------------------------------------
-    // Identity
-    // -----------------------------------------------------------------
-
     private function agentHandle(): string
     {
         $actor = $this->auditEvents
@@ -132,14 +107,6 @@ class RunInspectorResource extends JsonResource
         return $value === null ? null : (float) $value;
     }
 
-    // -----------------------------------------------------------------
-    // Execution trace
-    // -----------------------------------------------------------------
-
-    /**
-     * @param  Collection<int, RunStep>  $steps
-     * @return array<string, mixed>
-     */
     private function trace(Collection $steps, ?RunStep $gate): array
     {
         $toolCalls = $steps->whereIn('step_type', self::TOOL_CALL_TYPES)->count();
@@ -147,8 +114,6 @@ class RunInspectorResource extends JsonResource
             ->filter(fn (RunStep $step): bool => $step->status !== 'completed')
             ->count();
 
-        // The step the reviewer is here for: the gate that stopped the run,
-        // else wherever the run actually ended up.
         $selected = $gate?->status !== 'completed' ? $gate : null;
         $selected ??= $steps->firstWhere('status', 'failed')
             ?? $steps->firstWhere('status', 'pending')
@@ -188,16 +153,6 @@ class RunInspectorResource extends JsonResource
             ?? 'reasoning';
     }
 
-    // -----------------------------------------------------------------
-    // Reasoning timeline
-    // -----------------------------------------------------------------
-
-    /**
-     * Every step as a terminal entry, in order, with the timestamp it started.
-     *
-     * @param  Collection<int, RunStep>  $steps
-     * @return array<string, mixed>
-     */
     private function reasoningTimeline(Collection $steps): array
     {
         return [
@@ -216,14 +171,10 @@ class RunInspectorResource extends JsonResource
                 'tone' => $this->stepTone($step),
                 'lines' => $this->entryLines($step),
             ])->values()->all(),
-            // The run stopped mid-flight, so the trace has no closing line.
             'open' => $steps->contains(fn (RunStep $step): bool => $step->status === 'pending'),
         ];
     }
 
-    /**
-     * @return array<int, array<string, string>>
-     */
     private function entryLines(RunStep $step): array
     {
         $in = $this->payload($step, 'input_payload');
@@ -234,8 +185,6 @@ class RunInspectorResource extends JsonResource
             $lines[] = ['label' => 'in', 'text' => $this->inline($in), 'tone' => 'ink'];
         }
 
-        // Prose keys get their own readable line below; printing them raw too
-        // just repeats the paragraph in truncated form.
         $raw = array_diff_key($out, array_flip(['rationale']));
 
         if ($raw !== []) {
@@ -293,14 +242,6 @@ class RunInspectorResource extends JsonResource
         return $lines;
     }
 
-    // -----------------------------------------------------------------
-    // Tool calls
-    // -----------------------------------------------------------------
-
-    /**
-     * @param  Collection<int, RunStep>  $steps
-     * @return array<string, mixed>
-     */
     private function toolCalls(Collection $steps): array
     {
         $calls = $steps->whereIn('step_type', self::TOOL_CALL_TYPES)->values();
@@ -336,7 +277,6 @@ class RunInspectorResource extends JsonResource
         ];
     }
 
-    /** "Fetch account context (HubSpot)" -> "fetch_account_context_hubspot". */
     private function handle(string $name): string
     {
         $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '_', $name) ?? $name);
@@ -344,14 +284,6 @@ class RunInspectorResource extends JsonResource
         return trim($slug, '_');
     }
 
-    // -----------------------------------------------------------------
-    // Policy & risk
-    // -----------------------------------------------------------------
-
-    /**
-     * @param  Collection<int, RunStep>  $steps
-     * @return array<string, mixed>
-     */
     private function policy(Collection $steps, ?ApprovalRequest $approval, ?RunStep $gate, ?float $confidence): array
     {
         $gates = $steps->where('step_type', 'approval_gate');
@@ -370,7 +302,6 @@ class RunInspectorResource extends JsonResource
             ],
             'breach' => $approval === null ? null : [
                 'rule' => $in['rule'] ?? $out['reason'] ?? 'policy gate',
-                // The seeded approval text, verbatim — never paraphrased.
                 'summary' => $approval->summary,
             ],
             'counts' => [
@@ -384,11 +315,6 @@ class RunInspectorResource extends JsonResource
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $in
-     * @param  array<string, mixed>  $out
-     * @return array<string, mixed>
-     */
     private function risk(ApprovalRequest $approval, array $in, array $out, ?float $confidence): array
     {
         $score = RiskScore::for(
@@ -412,13 +338,6 @@ class RunInspectorResource extends JsonResource
         ];
     }
 
-    // -----------------------------------------------------------------
-    // Decision record
-    // -----------------------------------------------------------------
-
-    /**
-     * @return array<string, mixed>
-     */
     private function decision(?ApprovalRequest $approval, ?RunStep $gate, ?RunStep $reasoning, ?float $confidence): array
     {
         $out = $this->payload($reasoning, 'output_payload');
@@ -459,9 +378,6 @@ class RunInspectorResource extends JsonResource
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $gateIn
-     */
     private function decisionDetail(?ApprovalRequest $approval, array $gateIn, ?float $confidence): string
     {
         if ($approval === null) {
@@ -486,7 +402,6 @@ class RunInspectorResource extends JsonResource
         return implode(' · ', $parts);
     }
 
-    /** `approve` -> "Approved", `approve_with_flag` -> "Approved with flag". */
     private function pastTense(string $verdict): string
     {
         $words = explode('_', $verdict);
@@ -496,14 +411,6 @@ class RunInspectorResource extends JsonResource
         return ucfirst(trim($verb.' '.implode(' ', $words)));
     }
 
-    // -----------------------------------------------------------------
-    // Metadata
-    // -----------------------------------------------------------------
-
-    /**
-     * @param  Collection<int, RunStep>  $steps
-     * @return array<int, array<string, mixed>>
-     */
     private function metadata(Collection $steps): array
     {
         $workspace = $this->workflow?->workspace;
@@ -556,9 +463,6 @@ class RunInspectorResource extends JsonResource
         return $this->created_at->copy()->addMilliseconds($this->total_duration_ms);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function audit(): array
     {
         $count = $this->auditEvents?->count() ?? 0;
@@ -569,13 +473,6 @@ class RunInspectorResource extends JsonResource
         ];
     }
 
-    // -----------------------------------------------------------------
-    // Formatting
-    // -----------------------------------------------------------------
-
-    /**
-     * @return array<string, mixed>
-     */
     private function payload(?RunStep $step, string $attribute): array
     {
         $value = $step?->{$attribute};
@@ -583,7 +480,6 @@ class RunInspectorResource extends JsonResource
         return is_array($value) ? $value : [];
     }
 
-    /** Payload rendered the way the mockup's terminal prints it. */
     private function inline(array $payload): string
     {
         $pairs = [];
@@ -606,7 +502,6 @@ class RunInspectorResource extends JsonResource
         };
     }
 
-    /** Long prose (drafted replies, rationales) would swamp a single line. */
     private function truncate(string $value, int $limit = 88): string
     {
         return mb_strlen($value) <= $limit ? $value : mb_substr($value, 0, $limit - 1).'…';

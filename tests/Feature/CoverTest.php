@@ -12,17 +12,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
-/**
- * Cover — the public entry screen. Its figures are workspace-wide aggregates,
- * so they are checked against the rows rather than against the controller.
- */
 class CoverTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * @return array<string, mixed>
-     */
     private function props(): array
     {
         $response = $this->get('/');
@@ -31,10 +24,6 @@ class CoverTest extends TestCase
         return $response->viewData('page')['props'];
     }
 
-    /**
-     * @param  array<int, array<string, mixed>>  $signals
-     * @return array<string, mixed>
-     */
     private function signal(array $signals, string $key): array
     {
         return collect($signals)->firstWhere('key', $key);

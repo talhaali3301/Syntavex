@@ -2,13 +2,11 @@
 import { computed } from 'vue';
 
 const props = defineProps<{
-    /** 0–1. */
     score: number;
     scoreLabel: string;
     bandLabel: string;
 }>();
 
-/** Same 270° dial as the Fleet Trust Index gauge, drawn at inspector scale. */
 const RADIUS = 72;
 const SWEEP = 0.75;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;

@@ -11,10 +11,6 @@ const MARGIN = 110;
 const BASELINE = 100;
 const AMPLITUDE = 42;
 
-/**
- * Steps are laid out as a heartbeat rather than a straight line: an irregular
- * wave reads as activity, and the per-step drop lines keep it a timeline.
- */
 const WAVE = 1.9;
 
 const FILL: Record<TraceTone, string> = {
@@ -44,10 +40,6 @@ const spacing = computed(() => {
 
 const GLYPH = 5.7;
 
-/**
- * Labels are centred under their node, so each one has to fit both its own
- * slot and — for the outermost nodes — the margin it overhangs into.
- */
 const labelLimit = computed(() => {
     const room = Math.min(spacing.value || VIEW.width, MARGIN * 2);
 
@@ -73,7 +65,6 @@ const points = computed<Point[]>(() =>
     }),
 );
 
-/** Catmull-Rom through every node, emitted as cubic segments. */
 const path = computed(() => {
     const list = points.value;
 

@@ -13,12 +13,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
-/**
- * The bulk customer-record deletion intercept the Review Queue is built around.
- *
- * Kept out of DatabaseSeeder so the original 40-run dataset stays byte-for-byte
- * what Phases 2–5 were built and tested against. Run it after DatabaseSeeder.
- */
 class DestructiveInterceptSeeder extends Seeder
 {
     use WithoutModelEvents;
@@ -27,7 +21,6 @@ class DestructiveInterceptSeeder extends Seeder
 
     private const AGENT = 'agent:janitor-v2';
 
-    /** Rows the dormancy filter genuinely matched, before the NULL widening. */
     private const MATCHED_ROWS = 1204;
 
     private const NULL_ROWS = 13598;
@@ -117,9 +110,6 @@ class DestructiveInterceptSeeder extends Seeder
         ]), $cursor, $cursor);
     }
 
-    /**
-     * @return list<array<string, mixed>>
-     */
     private function steps(): array
     {
         return [
@@ -177,9 +167,6 @@ class DestructiveInterceptSeeder extends Seeder
         ];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function step(
         string $name,
         string $type,
@@ -201,12 +188,6 @@ class DestructiveInterceptSeeder extends Seeder
         ];
     }
 
-    /**
-     * @template TModel of Model
-     *
-     * @param  TModel  $model
-     * @return TModel
-     */
     private function persist(Model $model, Carbon $createdAt, Carbon $updatedAt): Model
     {
         $model->created_at = $createdAt;

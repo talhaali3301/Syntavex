@@ -11,7 +11,6 @@ const props = withDefaults(
     { band: '', components: () => [] },
 );
 
-/** Gauge geometry: a 270° dial, opening at the bottom. */
 const RADIUS = 62;
 const SWEEP = 0.75;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;

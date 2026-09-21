@@ -4,12 +4,6 @@ namespace App\Support;
 
 use App\Models\WorkflowRun;
 
-/**
- * A human objective for a run, read out of its trigger step's payload.
- *
- * Keyed on payload shape rather than workflow slug, so a new workflow with a
- * familiar payload still renders something useful. Expects `steps` loaded.
- */
 final class RunObjective
 {
     public static function for(WorkflowRun $run): string

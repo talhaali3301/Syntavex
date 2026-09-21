@@ -19,7 +19,6 @@ const labelX = (node: CoverConstellationNode): number =>
           ? node.x - node.radius - LABEL_OFFSET
           : node.x;
 
-/** A node sitting directly above or below the core labels vertically instead. */
 const labelY = (node: CoverConstellationNode): number =>
     node.anchor === 'middle' ? node.y - node.radius - 8 : node.y - 0.6;
 </script>

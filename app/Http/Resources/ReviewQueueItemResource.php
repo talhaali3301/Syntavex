@@ -11,19 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 
-/**
- * Shapes one pending ApprovalRequest for the Review Queue desk.
- *
- * The row-level fields are derived from the gate step's payload rather than the
- * workflow slug, so a workflow nobody has seen before still renders a headline,
- * an impact figure and a readout. `detail` is the Run Inspector payload
- * verbatim — the expansion renders it with the Inspector's own components.
- *
- * Expects the run's `workflow.workspace`, `steps`, `approvalRequests` and
- * `auditEvents` to be eager-loaded.
- *
- * @mixin ApprovalRequest
- */
 class ReviewQueueItemResource extends JsonResource
 {
     private const LEVEL_RANK = ['critical' => 0, 'high' => 1, 'medium' => 2, 'low' => 3];
@@ -35,7 +22,6 @@ class ReviewQueueItemResource extends JsonResource
         'low' => 'info',
     ];
 
-    /** Hours a pending item may wait before it is past due. */
     public const SLA_HOURS = 4;
 
     public static function rank(ApprovalRequest $approval): int
@@ -43,7 +29,6 @@ class ReviewQueueItemResource extends JsonResource
         return self::LEVEL_RANK[$approval->risk_level] ?? count(self::LEVEL_RANK);
     }
 
-    /** Severity band alone ties too often; the score separates within it. */
     public static function score(ApprovalRequest $approval): float
     {
         $gate = $approval->workflowRun->steps->firstWhere('step_type', 'approval_gate');
@@ -60,9 +45,6 @@ class ReviewQueueItemResource extends JsonResource
         );
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         $run = $this->workflowRun;
@@ -98,13 +80,6 @@ class ReviewQueueItemResource extends JsonResource
         ];
     }
 
-    // -----------------------------------------------------------------
-    // Headline & impact
-    // -----------------------------------------------------------------
-
-    /**
-     * @param  array<string, mixed>  $out
-     */
     private function headline(array $out): string
     {
         return match (true) {
@@ -135,7 +110,6 @@ class ReviewQueueItemResource extends JsonResource
         };
     }
 
-    /** What kind of gate stopped this — the chip the queue row leads with. */
     private function category(array $out): string
     {
         return match (true) {
@@ -145,9 +119,6 @@ class ReviewQueueItemResource extends JsonResource
         };
     }
 
-    /**
-     * @param  array<string, mixed>  $out
-     */
     private function impactLabel(array $out): ?string
     {
         return match (true) {
@@ -158,15 +129,6 @@ class ReviewQueueItemResource extends JsonResource
         };
     }
 
-    // -----------------------------------------------------------------
-    // Risk
-    // -----------------------------------------------------------------
-
-    /**
-     * @param  array<string, mixed>  $in
-     * @param  array<string, mixed>  $out
-     * @return array<string, mixed>
-     */
     private function risk(array $in, array $out, ?float $confidence): array
     {
         $score = RiskScore::for(
@@ -187,17 +149,6 @@ class ReviewQueueItemResource extends JsonResource
         ];
     }
 
-    // -----------------------------------------------------------------
-    // Freeze Frame evidence
-    // -----------------------------------------------------------------
-
-    /**
-     * The blocked rule, stated the way the gate recorded it.
-     *
-     * @param  array<string, mixed>  $in
-     * @param  array<string, mixed>  $out
-     * @return array<string, mixed>
-     */
     private function intercept(array $in, array $out, ?RunStep $gate): array
     {
         $limit = (float) ($out['policy_limit'] ?? $in['policy_limit'] ?? 0);
@@ -222,11 +173,6 @@ class ReviewQueueItemResource extends JsonResource
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $out
-     * @param  array<string, mixed>  $in
-     * @return array<string, mixed>
-     */
     private function readout(?RunStep $reasoning, array $out, array $in): array
     {
         $reasonOut = $this->payload($reasoning, 'output_payload');
@@ -260,12 +206,6 @@ class ReviewQueueItemResource extends JsonResource
         ];
     }
 
-    /**
-     * What the held action would have touched, drawn from the gate's own tally.
-     *
-     * @param  array<string, mixed>  $out
-     * @return array<int, array<string, string>>
-     */
     private function impactRows(array $out, ?RunStep $held): array
     {
         $rows = [];
@@ -297,10 +237,6 @@ class ReviewQueueItemResource extends JsonResource
         return $rows;
     }
 
-    // -----------------------------------------------------------------
-    // Timing
-    // -----------------------------------------------------------------
-
     private function waitedSeconds(): int
     {
         return max(0, (int) ($this->created_at ?? Carbon::now())->diffInSeconds(Carbon::now()));
@@ -325,17 +261,6 @@ class ReviewQueueItemResource extends JsonResource
             : 'SLA in '.$this->elapsedLabel($remaining);
     }
 
-    // -----------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------
-
-    /**
-     * Whether the held action cannot be undone once it commits. This, not the
-     * severity band, is what earns the Freeze Frame treatment: a critical
-     * refund can be reversed, a bulk delete cannot.
-     *
-     * @param  array<string, mixed>  $out  the gate's output payload
-     */
     private static function irreversible(array $out): bool
     {
         return (bool) ($out['irreversible'] ?? false);
@@ -363,9 +288,6 @@ class ReviewQueueItemResource extends JsonResource
         return trim(strtolower(preg_replace('/[^a-z0-9]+/i', '_', $name) ?? $name), '_');
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function payload(?RunStep $step, string $attribute): array
     {
         $value = $step?->{$attribute};

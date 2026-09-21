@@ -7,17 +7,6 @@ const props = defineProps<{
     graph: DecisionGraphData;
 }>();
 
-/**
- * The canvas is a fixed 1000×700, but this panel is as tall as whatever sits
- * beside it. Fitting the whole canvas with `meet` therefore letterboxed the
- * drawing — on a 1440×900 laptop it left roughly 180px of dead space inside
- * the panel.
- *
- * Instead, fit the box the drawing actually occupies (`graph.bounds`) and grow
- * it on whichever axis the panel has to spare. The result always fills the
- * panel, is never stretched (both axes keep one scale) and can never crop,
- * because the window only ever grows beyond the content.
- */
 const frame = ref<HTMLElement | null>(null);
 const frameRatio = ref<number | null>(null);
 
@@ -46,13 +35,11 @@ const viewBox = computed(() => {
     const { x, y, width, height } = props.graph.bounds;
     const ratio = frameRatio.value;
 
-    // Before the first measurement, fall back to the content box itself.
     if (ratio === null || !Number.isFinite(ratio) || width <= 0 || height <= 0) {
         return `${x} ${y} ${width} ${height}`;
     }
 
     if (ratio > width / height) {
-        // Panel is wider than the drawing: widen the window, keep the height.
         const grown = height * ratio;
 
         return `${x - (grown - width) / 2} ${y} ${grown} ${height}`;
@@ -63,7 +50,6 @@ const viewBox = computed(() => {
     return `${x} ${y - (grown - height) / 2} ${width} ${grown}`;
 });
 
-/** Resolves against the `.tone-vars` custom properties declared in app.css. */
 const TONE_VAR: Record<StatusTone, string> = {
     completed: 'var(--tone-completed)',
     review: 'var(--tone-review)',
@@ -170,7 +156,6 @@ const openRun = (node: DecisionGraphNode): void => {
                     </filter>
                 </defs>
 
-                <!-- Risk-proximity links between cluster cores -->
                 <g stroke-linecap="round">
                     <line
                         v-for="(link, index) in graph.links"
@@ -209,7 +194,6 @@ const openRun = (node: DecisionGraphNode): void => {
                         class="risk-ring"
                     />
 
-                    <!-- Spokes from each run back to its cluster core -->
                     <line
                         v-for="node in cluster.nodes"
                         :key="`spoke-${node.id}`"
@@ -221,7 +205,6 @@ const openRun = (node: DecisionGraphNode): void => {
                         stroke-width="0.75"
                     />
 
-                    <!-- Cluster core: the flagged run when there is one -->
                     <template v-if="cluster.core">
                         <circle
                             :cx="cluster.core.x"
@@ -319,7 +302,6 @@ const openRun = (node: DecisionGraphNode): void => {
                             </title>
                         </circle>
 
-                        <!-- Widens the pointer/focus target past the 4-7px dot. -->
                         <circle
                             class="graph-node-hit"
                             :cx="node.x"

@@ -16,37 +16,20 @@ use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Command Centre (Overview).
- *
- * Every figure on this screen is derived from the workspace's own runs —
- * nothing on the page is hardcoded.
- *
- * Every window is measured back from the newest run in the workspace rather
- * than wall-clock now(), so the screen keeps its shape whenever the seeded
- * dataset is demoed instead of silently decaying to zero.
- */
 class DashboardController extends Controller
 {
     private const RECENT_RUN_LIMIT = 6;
 
     private const HUMAN_ATTENTION_LIMIT = 3;
 
-    /**
-     * Per-run spend the workspace is budgeted against, in USD. Used as the
-     * denominator for the cost-efficiency term of the Fleet Trust Index.
-     */
     private const TARGET_COST_PER_RUN_USD = 0.75;
 
-    /** Run statuses that mean a human had to (or still has to) step in. */
     private const INTERVENTION_STATUSES = ['needs_review', 'failed'];
 
-    /** Decision-graph canvas, in SVG user units. */
     private const GRAPH_WIDTH = 1000;
 
     private const GRAPH_HEIGHT = 700;
 
-    /** Room the cluster name and the flagged run key need outside a ring. */
     private const GRAPH_LABEL_ABOVE = 28;
 
     private const GRAPH_LABEL_BELOW = 24;
@@ -58,12 +41,6 @@ class DashboardController extends Controller
         'running' => 'info',
     ];
 
-    /**
-     * Selectable observation windows, measured back from the newest run.
-     * `cost_label` is the heading the spend KPI carries for that window.
-     *
-     * @var array<string, array{label: string, days: int, cost_label: string}>
-     */
     private const RANGES = [
         '24h' => ['label' => 'Last 24 hours', 'days' => 1, 'cost_label' => '24h AI Cost'],
         '7d' => ['label' => 'Last 7 days', 'days' => 7, 'cost_label' => '7d AI Cost'],
@@ -77,28 +54,21 @@ class DashboardController extends Controller
     {
         $workspace = Workspace::query()->orderBy('id')->firstOrFail();
 
-        /** @var Collection<int, Workflow> $workflows */
         $workflows = $workspace->workflows()->orderBy('id')->get();
         $workflowIds = $workflows->pluck('id')->all();
 
         $range = $this->range($request);
 
-        // Newest run in the workspace: the point every window is measured back
-        // from, and the fleet pulse's only source of truth.
         $latestRun = WorkflowRun::query()->whereIn('workflow_id', $workflowIds)->max('created_at');
         $anchor = $latestRun === null ? now() : Carbon::parse($latestRun);
         $since = $anchor->copy()->subDays($range['days']);
 
-        /** @var Collection<int, WorkflowRun> $runs */
         $runs = WorkflowRun::query()
             ->whereIn('workflow_id', $workflowIds)
             ->whereBetween('created_at', [$since, $anchor])
             ->orderByDesc('created_at')
             ->get();
 
-        // Pending approvals are current state, not history: they stay in view
-        // however far back the window reaches. The graph may only *flag* one
-        // whose run is actually on screen, though.
         $topApproval = $this->mostUrgentPendingApproval($workflowIds);
         $graphApproval = $topApproval !== null && $runs->contains('id', $topApproval->workflow_run_id)
             ? $topApproval
@@ -119,8 +89,6 @@ class DashboardController extends Controller
                 'anchor_label' => $anchor->format('M j · H:i'),
                 'options' => $this->rangeOptions(),
             ],
-            // Same two states the Cover shows, derived the same way, so the
-            // indicator cannot disagree between the two screens.
             'pulse' => [
                 'live' => $latestRun !== null,
                 'latest_run_label' => $latestRun === null
@@ -140,12 +108,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * The selected observation window, falling back to the default when the
-     * query string names one that does not exist.
-     *
-     * @return array{key: string, label: string, days: int, cost_label: string}
-     */
     private function range(Request $request): array
     {
         $key = $request->query('range');
@@ -154,9 +116,6 @@ class DashboardController extends Controller
         return [...self::RANGES[$key], 'key' => $key];
     }
 
-    /**
-     * @return array<int, array{key: string, label: string}>
-     */
     private function rangeOptions(): array
     {
         $options = [];
@@ -168,14 +127,6 @@ class DashboardController extends Controller
         return $options;
     }
 
-    /**
-     * Headline KPI row: volume, reliability, latency and spend across the
-     * selected window.
-     *
-     * @param  Collection<int, WorkflowRun>  $runs
-     * @param  array{key: string, label: string, days: int, cost_label: string}  $range
-     * @return array<string, mixed>
-     */
     private function kpis(Collection $runs, array $range): array
     {
         $total = $runs->count();
@@ -217,30 +168,6 @@ class DashboardController extends Controller
         ];
     }
 
-    /**
-     * Fleet Trust Index — a single 0–100 confidence score for the agent fleet.
-     *
-     * FORMULA
-     *   trust = 100 × ( 0.55 × reliability
-     *                 + 0.30 × (1 − override_rate)
-     *                 + 0.15 × cost_efficiency )
-     *
-     *   reliability      = completed runs ÷ total runs
-     *                      — how often the fleet finishes unaided.
-     *   override_rate    = runs needing a human (needs_review or failed) ÷ total runs
-     *                      — how often autonomy breaks down; inverted so low is good.
-     *   cost_efficiency  = min(1, target_cost_per_run ÷ average_cost_per_run)
-     *                      — spend discipline against the budgeted per-run target
-     *                      (self::TARGET_COST_PER_RUN_USD), capped at 1 so coming
-     *                      in under budget cannot mask reliability problems.
-     *
-     * Weights favour reliability because a fleet that fails is untrustworthy
-     * regardless of price; cost is the lightest term because it is a business
-     * concern rather than a safety one.
-     *
-     * @param  Collection<int, WorkflowRun>  $runs
-     * @return array<string, mixed>
-     */
     private function fleetTrust(Collection $runs): array
     {
         $total = $runs->count();
@@ -300,10 +227,6 @@ class DashboardController extends Controller
         ];
     }
 
-    /**
-     * @param  array<int, int>  $workflowIds
-     * @return Collection<int, ApprovalRequest>
-     */
     private function pendingApprovals(array $workflowIds): Collection
     {
         return $this->pendingApprovalQuery($workflowIds)
@@ -311,20 +234,11 @@ class DashboardController extends Controller
             ->get();
     }
 
-    /**
-     * @param  array<int, int>  $workflowIds
-     */
     private function mostUrgentPendingApproval(array $workflowIds): ?ApprovalRequest
     {
         return $this->pendingApprovalQuery($workflowIds)->first();
     }
 
-    /**
-     * Pending approvals, most severe first, then most recently raised.
-     *
-     * @param  array<int, int>  $workflowIds
-     * @return \Illuminate\Database\Eloquent\Builder<ApprovalRequest>
-     */
     private function pendingApprovalQuery(array $workflowIds)
     {
         return ApprovalRequest::query()
@@ -335,13 +249,6 @@ class DashboardController extends Controller
             ->orderByDesc('created_at');
     }
 
-    /**
-     * The newest runs inside the window, with the relations the list resource
-     * reads from eager-loaded.
-     *
-     * @param  Collection<int, WorkflowRun>  $runs
-     * @return Collection<int, WorkflowRun>
-     */
     private function recentRuns(Collection $runs): Collection
     {
         $recent = $runs->take(self::RECENT_RUN_LIMIT);
@@ -350,20 +257,6 @@ class DashboardController extends Controller
         return $recent->values();
     }
 
-    /**
-     * Decision graph: one cluster per workflow, one node per run.
-     *
-     * Layout is computed server-side so the Vue component stays a pure
-     * renderer. Clusters sit on an ellipse; within a cluster, runs are packed
-     * into concentric rings with at-risk runs (needs_review / failed) placed on
-     * the innermost ring — so visual proximity to a cluster's core literally
-     * encodes risk. The flagged cluster is the one holding the most urgent
-     * pending approval.
-     *
-     * @param  Collection<int, Workflow>  $workflows
-     * @param  Collection<int, WorkflowRun>  $runs
-     * @return array<string, mixed>
-     */
     private function decisionGraph(Collection $workflows, Collection $runs, ?ApprovalRequest $topApproval): array
     {
         $runsByWorkflow = $runs->groupBy('workflow_id');
@@ -393,18 +286,12 @@ class DashboardController extends Controller
         $clusters = [];
 
         foreach ($populated as $index => $workflow) {
-            // Even placement around an ellipse, rotated so no cluster sits on
-            // the vertical axis (keeps the 4-cluster case as a tidy quad).
             $angle = deg2rad(($index * 360 / $count) - 45);
             $cx = $centreX + ($spreadX * cos($angle));
             $cy = $centreY + ($spreadY * sin($angle));
 
-            /** @var Collection<int, WorkflowRun> $clusterRuns */
             $clusterRuns = $runsByWorkflow->get($workflow->id);
 
-            // At-risk runs first => they land on the inner rings. A single
-            // composite key keeps this a key-extractor sort (an array of
-            // callables would be read as comparators instead).
             $ordered = $clusterRuns
                 ->sortBy(fn (WorkflowRun $run): string => sprintf(
                     '%d-%s',
@@ -413,8 +300,6 @@ class DashboardController extends Controller
                 ))
                 ->values();
 
-            // The run behind the most urgent approval becomes the cluster core,
-            // so the flagged cluster reads outward from the run that caused it.
             $coreRun = $ordered->first(
                 fn (WorkflowRun $run): bool => $flaggedRunId !== null && $run->id === $flaggedRunId
             );
@@ -433,7 +318,6 @@ class DashboardController extends Controller
                 $ringRadius = 44 + ($ring * 34);
                 $maxRingRadius = max($maxRingRadius, $ringRadius);
 
-                // Offset each ring so spokes from different rings don't overlap.
                 $nodeAngle = deg2rad(($slot * 360 / $slots) + ($ring * 20));
                 $atRisk = in_array($run->status, self::INTERVENTION_STATUSES, true);
 
@@ -443,7 +327,6 @@ class DashboardController extends Controller
                     'status' => $run->status,
                     'tone' => self::STATUS_TONES[$run->status] ?? 'info',
                     'at_risk' => $atRisk,
-                    // Only the cluster core is ever flagged; ring nodes are not.
                     'flagged' => false,
                     'cost_label' => $run->total_cost_usd === null
                         ? '—'
@@ -500,18 +383,6 @@ class DashboardController extends Controller
         ];
     }
 
-    /**
-     * The box the drawing actually occupies, labels included.
-     *
-     * The canvas is a fixed 1000×700, but a panel is whatever height its
-     * neighbours make it — fitting the whole canvas into that box letterboxed
-     * the graph. The client fits *this* box instead and grows it to the
-     * panel's own aspect ratio, so the drawing fills the panel without being
-     * stretched or cropped.
-     *
-     * @param  array<int, array<string, mixed>>  $clusters
-     * @return array{x: float, y: float, width: float, height: float}
-     */
     private function graphBounds(array $clusters): array
     {
         if ($clusters === []) {
@@ -524,12 +395,10 @@ class DashboardController extends Controller
         foreach ($clusters as $cluster) {
             $left = min($left, $cluster['x'] - $cluster['radius']);
             $right = max($right, $cluster['x'] + $cluster['radius']);
-            // The workflow name sits above the ring, the risk ratio just inside it.
             $top = min($top, $cluster['y'] - $cluster['radius'] - self::GRAPH_LABEL_ABOVE);
             $bottom = max($bottom, $cluster['y'] + $cluster['radius']);
 
             if ($cluster['core'] !== null) {
-                // ...and a flagged core carries its run key underneath.
                 $bottom = max($bottom, $cluster['core']['y'] + $cluster['core']['r'] + self::GRAPH_LABEL_BELOW);
             }
         }
@@ -544,12 +413,6 @@ class DashboardController extends Controller
         ];
     }
 
-    /**
-     * Ring packing for a node at `$position` within its cluster.
-     * Ring k holds 6 + 6k slots, so rings stay visually uncrowded.
-     *
-     * @return array{0: int, 1: int, 2: int} [ring index, slot index, slots in ring]
-     */
     private function ringSlot(int $position): array
     {
         $ring = 0;
@@ -566,14 +429,6 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Risk-proximity links: every cluster is tethered to the flagged cluster so
-     * the blast radius of the flagged workflow is legible. With nothing
-     * flagged, clusters are chained in a ring instead.
-     *
-     * @param  array<int, array<string, mixed>>  $clusters
-     * @return array<int, array<string, mixed>>
-     */
     private function clusterLinks(array $clusters): array
     {
         $count = count($clusters);
@@ -623,10 +478,6 @@ class DashboardController extends Controller
         return $links;
     }
 
-    /**
-     * @param  array<int, array<string, mixed>>  $clusters
-     * @return array<string, mixed>|null
-     */
     private function graphCallout(array $clusters, ?ApprovalRequest $topApproval): ?array
     {
         foreach ($clusters as $cluster) {
@@ -655,10 +506,6 @@ class DashboardController extends Controller
         return null;
     }
 
-    /**
-     * @param  Collection<int, WorkflowRun>  $runs
-     * @return array<int, array<string, mixed>>
-     */
     private function graphLegend(Collection $runs): array
     {
         $labels = [
@@ -681,15 +528,6 @@ class DashboardController extends Controller
         return $legend;
     }
 
-    /**
-     * Governance ledger: what the workspace can prove it decided.
-     *
-     * Cumulative across the workspace's whole history — an audit trail does not
-     * shrink when you narrow the view — so it is deliberately not windowed.
-     *
-     * @param  array<int, int>  $workflowIds
-     * @return array<string, mixed>
-     */
     private function governanceLedger(int $workspaceId, array $workflowIds): array
     {
         $inWorkspace = fn ($query) => $query->whereHas(
@@ -697,8 +535,6 @@ class DashboardController extends Controller
             fn ($runQuery) => $runQuery->whereIn('workflow_id', $workflowIds)
         );
 
-        // A decision is "signed" when a human resolved an approval, or when an
-        // approval gate cleared on its own (auto-approved).
         $resolvedApprovals = ApprovalRequest::query()
             ->where('status', '!=', 'pending')
             ->whereHas('workflowRun', fn ($query) => $query->whereIn('workflow_id', $workflowIds))
@@ -710,7 +546,6 @@ class DashboardController extends Controller
             ->where($inWorkspace)
             ->count();
 
-        // Every reasoning step and every gate is a policy evaluation.
         $policiesEvaluated = RunStep::query()
             ->whereIn('step_type', ['llm_reasoning', 'approval_gate'])
             ->where($inWorkspace)

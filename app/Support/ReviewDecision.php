@@ -2,12 +2,6 @@
 
 namespace App\Support;
 
-/**
- * A reviewer's verdict on a pending approval, and everything it moves.
- *
- * Request-changes is deliberately not terminal: it clears the desk without
- * resolving the approval, so the run stays in review until someone signs it.
- */
 enum ReviewDecision: string
 {
     case Approve = 'approve';
@@ -32,7 +26,6 @@ enum ReviewDecision: string
         };
     }
 
-    /** What becomes of the step the gate held back. */
     public function heldStepStatus(): string
     {
         return match ($this) {

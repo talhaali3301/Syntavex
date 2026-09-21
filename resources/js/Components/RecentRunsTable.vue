@@ -47,7 +47,6 @@ const DOT: Record<StatusTone, string> = {
     info: 'bg-status-info',
 };
 
-/** The run key is the keyboard-reachable link; the row is the pointer target. */
 const open = (id: number): void => {
     router.visit(`/runs/${id}`);
 };

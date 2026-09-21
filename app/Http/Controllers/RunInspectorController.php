@@ -11,18 +11,10 @@ use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Run Inspector (Deep Trace).
- *
- * The run itself is shaped by RunInspectorResource; this assembles the
- * cross-run context around it — the header benchmarks each figure is measured
- * against, and the runs a reviewer would want to compare this one to.
- */
 class RunInspectorController extends Controller
 {
     private const RELATED_LIMIT = 4;
 
-    /** Window the run's spend is expressed as a share of. */
     private const SPEND_WINDOW_HOURS = 24;
 
     private const TONES = [
@@ -43,9 +35,6 @@ class RunInspectorController extends Controller
         ]);
     }
 
-    /**
-     * @return array<int, array<string, string|null>>
-     */
     private function header(WorkflowRun $run): array
     {
         $ended = $run->total_duration_ms === null
@@ -84,7 +73,6 @@ class RunInspectorController extends Controller
         ];
     }
 
-    /** Where this run's duration sits against the rest of its workflow. */
     private function durationBenchmark(WorkflowRun $run): ?string
     {
         if ($run->workflow === null) {
@@ -107,10 +95,6 @@ class RunInspectorController extends Controller
         return 'p95 '.number_format($durations[max(0, $index)] / 1000, 2).'s';
     }
 
-    /**
-     * The mockup's "in / out" split; the schema records tokens per step type
-     * rather than per direction, so that is what it reports.
-     */
     private function tokenSplit(WorkflowRun $run): ?string
     {
         $byType = $run->steps
@@ -150,12 +134,6 @@ class RunInspectorController extends Controller
         return sprintf('%d%% of %dh spend', round(($cost / $workspaceTotal) * 100), self::SPEND_WINDOW_HOURS);
     }
 
-    /**
-     * Runs a reviewer would compare this one against: the same workflow first,
-     * topped up from the wider workspace so the rail is never half empty.
-     *
-     * @return array<int, array<string, mixed>>
-     */
     private function related(WorkflowRun $run): array
     {
         $sameWorkflow = $this->neighbours($run, $run->workflow_id, self::RELATED_LIMIT)
@@ -171,9 +149,6 @@ class RunInspectorController extends Controller
         return $sameWorkflow->concat($sameWorkspace)->values()->all();
     }
 
-    /**
-     * @return Collection<int, WorkflowRun>
-     */
     private function neighbours(WorkflowRun $run, ?int $workflowId, int $limit): Collection
     {
         return WorkflowRun::query()
@@ -192,9 +167,6 @@ class RunInspectorController extends Controller
             ->get();
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function relatedRow(WorkflowRun $run, string $relation): array
     {
         return [

@@ -7,17 +7,8 @@ use App\Models\WorkflowRun;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Shapes a WorkflowRun for the Command Centre "Recent Runs" table.
- *
- * Expects the caller to eager-load `workflow`, `steps` and `auditEvents`;
- * the derived agent handle and focus step are read from those relations.
- *
- * @mixin WorkflowRun
- */
 class RunListResource extends JsonResource
 {
-    /** Statuses that mark the step a run is currently "sitting on". */
     private const UNSETTLED_STEP_STATUSES = ['blocked', 'failed', 'pending', 'running'];
 
     private const STATUS_LABELS = [
@@ -27,7 +18,6 @@ class RunListResource extends JsonResource
         'running' => 'Running',
     ];
 
-    /** Maps a run status onto the Phase 1 status colour tokens. */
     private const STATUS_TONES = [
         'completed' => 'completed',
         'needs_review' => 'review',
@@ -35,9 +25,6 @@ class RunListResource extends JsonResource
         'running' => 'info',
     ];
 
-    /**
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         $focusStep = $this->focusStep();
@@ -65,10 +52,6 @@ class RunListResource extends JsonResource
         ];
     }
 
-    /**
-     * The step the run is parked on (blocked / failed / pending), or the last
-     * step it executed when the run settled cleanly.
-     */
     private function focusStep(): ?RunStep
     {
         $steps = $this->steps;
@@ -82,10 +65,6 @@ class RunListResource extends JsonResource
         ) ?? $steps->last();
     }
 
-    /**
-     * The agent that last acted on the run, taken from the audit trail.
-     * System-driven runs (e.g. infrastructure failures) have no agent actor.
-     */
     private function agentHandle(): string
     {
         $actor = $this->auditEvents

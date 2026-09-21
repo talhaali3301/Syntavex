@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * Footer heartbeat strip. Phase 3 renders a looping static waveform — the
- * labels beside it are real workspace figures, not sample data. Live
- * streaming lands with the telemetry channel in a later phase.
- */
 withDefaults(
     defineProps<{
         stats?: { label: string; value: string }[];
@@ -12,7 +7,6 @@ withDefaults(
     { stats: () => [], label: 'Live Execution Pulse' },
 );
 
-/** One heartbeat period, 240 units wide; tiled to fill the strip. */
 const BEAT =
     'M0 30 H26 L34 30 L40 12 L46 48 L52 22 L58 30 H86 L92 30 L98 20 L104 40 L110 30 H150 L156 30 L162 16 L168 44 L174 30 H240';
 </script>
@@ -63,7 +57,6 @@ const BEAT =
                     stroke-width="1"
                 />
 
-                <!-- Two tiled copies scrolled by 50% for a seamless loop. -->
                 <g class="pulse-scroll" stroke="url(#pulse-stroke)" stroke-width="1.8" fill="none"
                    stroke-linecap="round" stroke-linejoin="round" filter="url(#pulse-glow)">
                     <path :d="BEAT" />

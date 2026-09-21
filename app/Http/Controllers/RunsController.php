@@ -14,22 +14,12 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-/**
- * Runs Explorer.
- *
- * Filtering, the status distribution, the 14-day volume chart and pagination
- * are all driven by the workflow_runs table. The date window is anchored to
- * the most recent run in the database rather than wall-clock now(), so the
- * screen stays meaningful whenever the app is demoed.
- */
 class RunsController extends Controller
 {
     private const PER_PAGE = 11;
 
-    /** Width of both the default date filter and the volume chart, in days. */
     private const WINDOW_DAYS = 14;
 
-    /** Width of the rolling spend total on the distribution strip, in days. */
     private const COST_WINDOW_DAYS = 3;
 
     private const STATUSES = ['completed', 'needs_review', 'failed'];
@@ -47,16 +37,12 @@ class RunsController extends Controller
 
         $filters = $this->filters($request, $workflowIds);
 
-        // Scope = every filter except status. Chip counts read from here, so
-        // each chip shows exactly how many rows clicking it would return.
         $scope = $this->baseQuery($workflowIds, $filters)
             ->whereBetween('workflow_runs.created_at', [$filters['from'], $filters['to']]);
 
         $scopeTotal = (clone $scope)->count();
         $statusCounts = $this->statusCounts(clone $scope);
 
-        // Everything in the date window, ignoring workflow/search/status, so
-        // "Showing X of Y" shows how much the filters actually narrowed things.
         $rangeTotal = WorkflowRun::query()
             ->whereIn('workflow_id', $workflowIds)
             ->whereBetween('created_at', [$filters['from'], $filters['to']])
@@ -73,13 +59,6 @@ class RunsController extends Controller
             ->selectRaw('AVG(total_duration_ms) as avg_duration_ms')
             ->first();
 
-        // Rolling spend over the COST_WINDOW_DAYS ending at the *selected*
-        // range's end, in the mockup's "$x / <window>" framing. Hanging it off
-        // the visible range rather than the global anchor keeps it truthful
-        // when the user scrolls back to a historic window — anchoring it
-        // globally made every past range read "$0.00 / 3d". The window is days
-        // rather than hours because the seed averages ~3 runs/day, so a 24h
-        // slice would often hold a single run.
         $costWindow = (float) (clone $filtered)
             ->where('workflow_runs.created_at', '>=', $filters['to']->copy()->subDays(self::COST_WINDOW_DAYS))
             ->sum('total_cost_usd');
@@ -125,7 +104,6 @@ class RunsController extends Controller
         ]);
     }
 
-    /** CSV of the currently filtered runs (every page, not just the visible one). */
     public function export(Request $request): StreamedResponse
     {
         $workspace = Workspace::query()->orderBy('id')->firstOrFail();
@@ -149,8 +127,6 @@ class RunsController extends Controller
                 'duration_ms', 'tokens', 'cost_usd', 'error_message',
             ]);
 
-            // id breaks ties on created_at so chunking can never skip or
-            // repeat a row when two runs share a timestamp.
             $query->with('workflow')
                 ->orderByDesc('workflow_runs.created_at')
                 ->orderByDesc('workflow_runs.id')
@@ -173,13 +149,6 @@ class RunsController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    /**
-     * Resolves request filters, defaulting the date window to the last
-     * self::WINDOW_DAYS days *relative to the newest seeded run*.
-     *
-     * @param  array<int, int>  $workflowIds
-     * @return array<string, mixed>
-     */
     private function filters(Request $request, array $workflowIds): array
     {
         $anchor = $this->anchorDate($workflowIds);
@@ -193,8 +162,6 @@ class RunsController extends Controller
             [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
         }
 
-        // query() hands back an array for `?status[]=x`; only a scalar is
-        // ever a valid filter, so anything else falls back to the default.
         $status = $request->query('status', 'all');
         $status = is_string($status) ? $status : 'all';
 
@@ -225,7 +192,6 @@ class RunsController extends Controller
         ];
     }
 
-    /** Newest run in the workspace — the anchor every date window hangs off. */
     private function anchorDate(array $workflowIds): Carbon
     {
         $latest = WorkflowRun::query()
@@ -235,11 +201,6 @@ class RunsController extends Controller
         return $latest === null ? now() : Carbon::parse($latest);
     }
 
-    /**
-     * Inclusive width of the selected date range, in days.
-     *
-     * @param  array<string, mixed>  $filters
-     */
     private function rangeDays(array $filters): int
     {
         return (int) $filters['from']->copy()->startOfDay()
@@ -259,14 +220,6 @@ class RunsController extends Controller
         }
     }
 
-    /**
-     * Workspace runs narrowed by workflow and search, but not by status or
-     * date — those are layered on by the caller.
-     *
-     * @param  array<int, int>  $workflowIds
-     * @param  array<string, mixed>  $filters
-     * @return Builder<WorkflowRun>
-     */
     private function baseQuery(array $workflowIds, array $filters): Builder
     {
         $query = WorkflowRun::query()->whereIn('workflow_id', $workflowIds);
@@ -275,7 +228,6 @@ class RunsController extends Controller
             $query->where('workflow_id', $filters['workflow']);
         }
 
-        // Live search across trace (run key) and workflow name.
         if ($filters['search'] !== '') {
             $term = '%'.str_replace(['%', '_'], ['\%', '\_'], $filters['search']).'%';
 
@@ -288,9 +240,6 @@ class RunsController extends Controller
         return $query;
     }
 
-    /**
-     * @return array<string, int>
-     */
     private function statusCounts(Builder $scope): array
     {
         $rows = $scope->selectRaw('status, COUNT(*) as aggregate')
@@ -306,10 +255,6 @@ class RunsController extends Controller
         return $counts;
     }
 
-    /**
-     * @param  array<string, int>  $counts
-     * @return array<int, array<string, mixed>>
-     */
     private function statusChips(int $scopeTotal, array $counts): array
     {
         $chips = [[
@@ -331,14 +276,6 @@ class RunsController extends Controller
         return $chips;
     }
 
-    /**
-     * Status split across the filtered date range, plus the averages that sit
-     * on the right of the strip.
-     *
-     * @param  array<string, int>  $counts
-     * @param  int  $rangeDays  Width of the selected date range, in days.
-     * @return array<string, mixed>
-     */
     private function distribution(
         int $scopeTotal,
         array $counts,
@@ -365,8 +302,6 @@ class RunsController extends Controller
 
         return [
             'total' => $scopeTotal,
-            // The width of the range actually in view, not the default window —
-            // otherwise widening to 90 days still read "N runs · 14 days".
             'window_days' => $rangeDays,
             'scope_label' => sprintf(
                 '%d run%s · %d day%s',
@@ -378,9 +313,6 @@ class RunsController extends Controller
             'success_rate' => round($successRate, 1),
             'success_label' => number_format($successRate, 1).'% success',
             'segments' => $segments,
-            // Both figures describe the filtered set; with nothing in view they
-            // are meaningless, so show a dash rather than a confident zero.
-            // Two decimals on each, so they read as one pair.
             'avg_duration_label' => $filteredTotal === 0
                 ? 'avg —'
                 : 'avg '.number_format($avgDuration / 1000, 2).'s',
@@ -391,15 +323,6 @@ class RunsController extends Controller
         ];
     }
 
-    /**
-     * Daily run counts across a fixed 14-day window ending on the anchor date.
-     * Bars are normalised against the busiest day so the tallest is always
-     * full height.
-     *
-     * @param  array<int, int>  $workflowIds
-     * @param  array<string, mixed>  $filters
-     * @return array<string, mixed>
-     */
     private function volume(array $workflowIds, array $filters): array
     {
         $end = $filters['anchor']->copy()->endOfDay();
@@ -427,7 +350,6 @@ class RunsController extends Controller
             $failed = (int) ($row->failed ?? 0);
             $review = (int) ($row->needs_review ?? 0);
 
-            // The bar takes the colour of the worst thing that happened that day.
             $tone = match (true) {
                 $failed > 0 => 'critical',
                 $review > 0 => 'review',
@@ -453,9 +375,6 @@ class RunsController extends Controller
         ];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function pagination(mixed $paginator): array
     {
         $from = $paginator->total() === 0 ? 0 : $paginator->firstItem();
@@ -475,11 +394,6 @@ class RunsController extends Controller
         ];
     }
 
-    /**
-     * Compact page list: first pages, an ellipsis, then the last page.
-     *
-     * @return array<int, array<string, mixed>>
-     */
     private function pageLinks(mixed $paginator): array
     {
         $last = $paginator->lastPage();
@@ -517,10 +431,6 @@ class RunsController extends Controller
         return $links;
     }
 
-    /**
-     * @param  array<int, int>  $workflowIds
-     * @return array<int, array<string, mixed>>
-     */
     private function workflowOptions(array $workflowIds): array
     {
         return Workflow::query()
@@ -536,12 +446,6 @@ class RunsController extends Controller
             ->all();
     }
 
-    /**
-     * The run to open inline on load: the highest-severity pending approval on
-     * this page. With the seeded data that is the flagship run #8421.
-     *
-     * @param  array<int, array<string, mixed>>  $rows
-     */
     private function flagshipRunId(array $rows): ?int
     {
         $order = ['critical' => 0, 'high' => 1, 'medium' => 2, 'low' => 3];

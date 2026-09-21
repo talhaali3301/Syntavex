@@ -37,7 +37,6 @@ const SKINS: Record<string, Skin> = {
     },
 };
 
-/** Tool calls only ever carry an outcome tone; anything else reads as idle. */
 const skin = computed<Skin>(() => {
     const byTone: Partial<Record<TraceTone, Skin>> = {
         critical: SKINS.critical,

@@ -12,11 +12,6 @@ use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/**
- * The demo dataset every screen reads from. These assertions exist so a row
- * total can never quietly drift away from the steps it is supposed to be the
- * sum of — which is what makes "no hardcoded numbers on screen" true.
- */
 class SeededDatasetTest extends TestCase
 {
     use RefreshDatabase;
@@ -110,7 +105,6 @@ class SeededDatasetTest extends TestCase
         foreach ($failed as $run) {
             $this->assertNotNull($run->error_message);
             $this->assertSame(1, $run->steps->where('status', 'failed')->count());
-            // Nothing downstream of the failure ran.
             $this->assertSame('failed', $run->steps->last()->status);
         }
     }
@@ -162,7 +156,6 @@ class SeededDatasetTest extends TestCase
         $mutation = $run->steps->firstWhere('step_type', 'mutation');
         $approval = $run->approvalRequests()->firstOrFail();
 
-        // One amount, quoted the same way everywhere it appears.
         $amount = $webhook->output_payload['requested_amount'];
         $this->assertEquals(120.0, $amount);
         $this->assertEquals($amount, $gate->input_payload['requested_amount']);
@@ -170,19 +163,16 @@ class SeededDatasetTest extends TestCase
         $this->assertEquals($amount, $mutation->input_payload['amount']);
         $this->assertStringContainsString('$120', $approval->summary);
 
-        // ...and the overshoot is arithmetic, not prose.
         $this->assertEquals(
             $gate->output_payload['requested_amount'] - $gate->output_payload['policy_limit'],
             $gate->output_payload['over_by'],
         );
 
-        // One customer and one ticket across the whole run.
         $this->assertSame('CUS-9281', $webhook->output_payload['customer_id']);
         $this->assertSame('CUS-9281', $mutation->input_payload['customer_id']);
         $this->assertSame('ZD-40219', $webhook->input_payload['ticket_id']);
         $this->assertSame('ZD-40219', $webhook->output_payload['ticket_id']);
 
-        // The gate blocked, so the payout never happened.
         $this->assertSame('blocked', $gate->status);
         $this->assertSame('pending', $mutation->status);
         $this->assertNull($mutation->output_payload);
@@ -193,9 +183,6 @@ class SeededDatasetTest extends TestCase
         $run = WorkflowRun::query()->where('run_key', '8421')->with('steps')->firstOrFail();
         $reasoning = $run->steps->firstWhere('step_type', 'llm_reasoning');
 
-        // Regression: the outage date used to be a literal, so it drifted away
-        // from the run's own timestamp as soon as the data was reseeded. Pull
-        // whatever date the rationale actually quotes and hold it to the run.
         preg_match('/\d{4}-\d{2}-\d{2}/', $reasoning->output_payload['rationale'], $quoted);
 
         $this->assertNotEmpty($quoted, 'The rationale should date the outage it refers to.');

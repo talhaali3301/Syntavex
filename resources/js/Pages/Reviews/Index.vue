@@ -25,14 +25,12 @@ const toggle = (id: number): void => {
     expandedId.value = expandedId.value === id ? null : id;
 };
 
-/** Focus mode strips the desk back to the decisions that cannot be undone. */
 const visible = computed(() =>
     focusMode.value ? props.queue.filter((item) => item.frozen) : props.queue,
 );
 
 const decided = computed(() => props.stats.approved + props.stats.rejected);
 
-/** A desk where nobody has decided anything yet has a max of 0. */
 const loadWidth = (decisions: number): string =>
     props.reviewers.max > 0 ? `${(decisions / props.reviewers.max) * 100}%` : '0%';
 

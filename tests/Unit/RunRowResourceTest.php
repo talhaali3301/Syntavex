@@ -13,18 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
-/**
- * The derivations behind a Runs Explorer row — objective, agent handle, token
- * formatting, risk score and decision headline — exercised directly on
- * in-memory models so each formula is pinned independently of the seeder.
- */
 class RunRowResourceTest extends TestCase
 {
-    /**
-     * @param  list<RunStep>  $steps
-     * @param  list<AuditEvent>  $auditEvents
-     * @return array<string, mixed>
-     */
     private function row(
         array $steps = [],
         array $auditEvents = [],
@@ -54,10 +44,6 @@ class RunRowResourceTest extends TestCase
         return (new RunRowResource($run))->toArray(Request::create('/runs'));
     }
 
-    /**
-     * @param  array<string, mixed>|null  $input
-     * @param  array<string, mixed>|null  $output
-     */
     private function step(
         string $name,
         string $type,
@@ -92,10 +78,6 @@ class RunRowResourceTest extends TestCase
         return $approval;
     }
 
-    // ---------------------------------------------------------------------
-    // Column formatting
-    // ---------------------------------------------------------------------
-
     public function test_it_formats_duration_tokens_and_cost_for_the_table(): void
     {
         $row = $this->row();
@@ -129,10 +111,6 @@ class RunRowResourceTest extends TestCase
         $this->assertSame('1.0k', $this->row(attributes: ['total_tokens' => 1000])['tokens_label']);
     }
 
-    // ---------------------------------------------------------------------
-    // Objective
-    // ---------------------------------------------------------------------
-
     public function test_a_refund_objective_names_its_amount_and_ticket(): void
     {
         $row = $this->row([
@@ -147,8 +125,6 @@ class RunRowResourceTest extends TestCase
 
     public function test_a_refund_with_no_linked_ticket_still_reads_as_a_refund(): void
     {
-        // The missing ticket is the reason the run needs review, so it must not
-        // fall through to a generic step-name objective.
         $row = $this->row([
             $this->step('Zendesk refund request received', 'webhook', output: [
                 'requested_amount' => 65.0,
@@ -202,10 +178,6 @@ class RunRowResourceTest extends TestCase
         $this->assertSame('Diagnose probable root cause', $row['objective']);
     }
 
-    // ---------------------------------------------------------------------
-    // Agent handle
-    // ---------------------------------------------------------------------
-
     public function test_the_agent_handle_comes_from_the_latest_agent_audit_event(): void
     {
         $older = new AuditEvent(['performed_by' => 'agent:ticket-triage']);
@@ -228,10 +200,6 @@ class RunRowResourceTest extends TestCase
         $this->assertSame('system', $this->row([], [$event])['agent']);
     }
 
-    // ---------------------------------------------------------------------
-    // Expansion: counts, risk and decision
-    // ---------------------------------------------------------------------
-
     public function test_the_expansion_counts_steps_tool_calls_and_policy_hits(): void
     {
         $row = $this->row([
@@ -244,9 +212,7 @@ class RunRowResourceTest extends TestCase
         ]);
 
         $this->assertSame(6, $row['expansion']['steps']);
-        // retrieval + mutation are the outbound calls.
         $this->assertSame(2, $row['expansion']['tool_calls']);
-        // Only the gate that did NOT clear counts as a policy hit.
         $this->assertSame(1, $row['expansion']['policy_hits']);
     }
 
@@ -268,7 +234,6 @@ class RunRowResourceTest extends TestCase
             approval: $this->approval('critical'),
         );
 
-        // 0.75 base + 0.15 × (20 ÷ 100) + 0.10 × (1 − 0.94) = 0.786 -> 0.79
         $this->assertSame(0.79, $row['expansion']['risk']['score']);
         $this->assertSame('CRITICAL', $row['expansion']['risk']['level_label']);
         $this->assertSame('critical', $row['expansion']['risk']['tone']);
@@ -289,7 +254,6 @@ class RunRowResourceTest extends TestCase
         );
 
         $this->assertLessThanOrEqual(1.0, $row['expansion']['risk']['score']);
-        // 0.75 + 0.15 (capped) + 0.10 × 0.9 = 0.99
         $this->assertSame(0.99, $row['expansion']['risk']['score']);
     }
 
@@ -313,7 +277,6 @@ class RunRowResourceTest extends TestCase
 
     public function test_a_multi_word_verdict_is_read_back_as_a_phrase(): void
     {
-        // Regression: this used to render "Approve_with_flagd by agent".
         $row = $this->row([
             $this->step('Reason', 'llm_reasoning', output: ['decision' => 'approve_with_flag']),
         ]);

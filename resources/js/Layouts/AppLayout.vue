@@ -5,11 +5,9 @@ import { computed } from 'vue';
 type NavItem = {
     label: string;
     href?: string;
-    /** Shown on hover for the rail items that have no screen behind them yet. */
     note?: string;
 };
 
-/** Order follows the mockup rail: orbit, grid, pulse, graph, shield, queue. */
 const navItems: NavItem[] = [
     { label: 'Cover', href: '/' },
     { label: 'Command Centre', href: '/dashboard' },
@@ -21,7 +19,6 @@ const navItems: NavItem[] = [
 
 const page = usePage();
 
-/** Active when the current URL is the item's route, a child of it, or it with a query string. */
 const currentLabel = computed(() => {
     const url = page.url;
 
@@ -38,15 +35,12 @@ const currentLabel = computed(() => {
 
 const accountName = computed(() => page.props.auth?.user?.name ?? '');
 
-/** Only the Review Queue carries a badge, and only off a real pending count. */
 const pendingReviews = computed(() => page.props.pendingReviews ?? 0);
 
-/** The Cover sits on a public route, so the rail has to render signed out too. */
 const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
 
 const onProfile = computed(() => page.url.startsWith('/profile'));
 
-/** "Mara Kessler" -> "MK"; a single name falls back to its first two letters. */
 const initials = computed(() => {
     const parts = accountName.value.trim().split(/\s+/).filter(Boolean);
 
@@ -68,17 +62,11 @@ const TILE =
 const LINKED =
     'cursor-pointer hover:border-[#A0CDF5]/[0.16] hover:bg-[#A0CDF5]/[0.08] hover:text-ink-300';
 
-/**
- * Telemetry, Approvals and Settings have no screen behind them yet. They keep
- * their place in the rail (the mockup's shape) but read as unavailable rather
- * than as buttons that silently do nothing.
- */
 const UNLINKED = 'cursor-not-allowed text-ink-900';
 
 const SIGN_OUT =
     'cursor-pointer hover:border-status-critical/30 hover:bg-status-critical/[0.10] hover:text-status-critical';
 
-/** Mockup active tile: cyan wash, cyan hairline border and an inner cyan bloom. */
 const ACTIVE =
     'border-accent-cyan/[0.32] bg-[linear-gradient(145deg,rgba(45,226,230,0.16),rgba(45,226,230,0.04))] text-accent-cyan shadow-[inset_0_0_18px_rgba(45,226,230,0.18)]';
 

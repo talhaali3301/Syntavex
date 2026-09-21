@@ -9,22 +9,8 @@ use App\Support\RunObjective;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Shapes a WorkflowRun for the Runs Explorer table, including the inline
- * expansion payload (trace preview, risk, decision).
- *
- * Everything here is derived from seeded columns and step payloads — the
- * objective line, agent handle, tool-call and policy-hit counts and the risk
- * score are all computed from real rows, never invented.
- *
- * Expects `workflow`, `steps`, `auditEvents` and `approvalRequests` to be
- * eager-loaded.
- *
- * @mixin WorkflowRun
- */
 class RunRowResource extends JsonResource
 {
-    /** Step types that represent an outbound call to a real system. */
     private const TOOL_CALL_TYPES = ['retrieval', 'mutation'];
 
     private const STATUS_LABELS = [
@@ -41,7 +27,6 @@ class RunRowResource extends JsonResource
         'running' => 'info',
     ];
 
-    /** Step status -> trace-dot tone. */
     private const STEP_TONES = [
         'completed' => 'completed',
         'blocked' => 'review',
@@ -50,9 +35,6 @@ class RunRowResource extends JsonResource
         'running' => 'info',
     ];
 
-    /**
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
@@ -81,7 +63,6 @@ class RunRowResource extends JsonResource
         ];
     }
 
-    /** The agent that last acted on the run, from the audit trail. */
     private function agentHandle(): string
     {
         $actor = $this->auditEvents
@@ -92,7 +73,6 @@ class RunRowResource extends JsonResource
         return $actor === null ? 'system' : substr($actor, strlen('agent:'));
     }
 
-    /** "18.2k" style token counts, matching the mockup's column. */
     private function compactTokens(): string
     {
         if ($this->total_tokens === null) {
@@ -104,11 +84,6 @@ class RunRowResource extends JsonResource
             : (string) $this->total_tokens;
     }
 
-    /**
-     * Inline expansion: trace preview, risk and decision.
-     *
-     * @return array<string, mixed>|null
-     */
     private function expansion(): ?array
     {
         $steps = $this->steps;
@@ -119,7 +94,6 @@ class RunRowResource extends JsonResource
 
         $toolCalls = $steps->whereIn('step_type', self::TOOL_CALL_TYPES)->count();
 
-        // A "policy hit" is an approval gate that did NOT clear on its own.
         $policyHits = $steps
             ->where('step_type', 'approval_gate')
             ->filter(fn (RunStep $step): bool => $step->status !== 'completed')
@@ -152,11 +126,6 @@ class RunRowResource extends JsonResource
         ];
     }
 
-    /**
-     * Risk level and a 0–1 score. Runs with no approval request carry none.
-     *
-     * @return array<string, mixed>|null
-     */
     private function risk(mixed $approval, ?RunStep $gate, ?float $confidence): ?array
     {
         if ($approval === null) {
@@ -189,12 +158,6 @@ class RunRowResource extends JsonResource
         ];
     }
 
-    /**
-     * Reads a snake_case verdict back as a past-tense phrase:
-     * `approve` -> "Approved", `approve_with_flag` -> "Approved with flag".
-     *
-     * Only the verb (the first word) is inflected; the rest is a qualifier.
-     */
     private function pastTense(string $verdict): string
     {
         $words = explode('_', $verdict);
@@ -204,11 +167,6 @@ class RunRowResource extends JsonResource
         return ucfirst(trim($verb.' '.implode(' ', $words)));
     }
 
-    /**
-     * The decision the run reached, plus the seeded approval summary verbatim.
-     *
-     * @return array<string, mixed>|null
-     */
     private function decision(mixed $approval, ?RunStep $gate, ?RunStep $reasoning, ?float $confidence): ?array
     {
         $out = is_array($reasoning?->output_payload) ? $reasoning->output_payload : [];
@@ -225,7 +183,6 @@ class RunRowResource extends JsonResource
                 lcfirst($outcome),
             ),
             $outcome !== null => $outcome.' by agent',
-            // Triage runs record a proposed priority rather than a verdict.
             isset($out['original_priority'], $out['proposed_priority']) => sprintf(
                 'Priority %s → %s proposed',
                 $out['original_priority'],
@@ -244,7 +201,6 @@ class RunRowResource extends JsonResource
             'signed_label' => $approval === null
                 ? 'no approval required'
                 : ($approval->status === 'pending' ? 'unsigned' : 'signed by '.$approval->resolved_by),
-            // The seeded approval text, verbatim — never paraphrased.
             'summary' => $approval?->summary,
         ];
     }

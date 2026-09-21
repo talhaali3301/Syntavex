@@ -5,11 +5,6 @@ defineProps<{
     volume: VolumeData;
 }>();
 
-/**
- * Pure flex/CSS bars rather than an SVG canvas: bars flex to the container's
- * width and the track has a fixed height, so there is nothing to letterbox
- * and no aspect ratio to preserve at any breakpoint.
- */
 const BAR: Record<BarTone, string> = {
     info: 'bg-status-info/[0.28]',
     review: 'bg-status-review/[0.55]',

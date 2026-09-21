@@ -17,7 +17,6 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/runs', [RunsController::class, 'index'])->name('runs.index');
 
-    // Declared before the wildcard so "export" is never read as a run id.
     Route::get('/runs/export', [RunsController::class, 'export'])->name('runs.export');
 
     Route::get('/runs/{run}', [RunInspectorController::class, 'show'])
@@ -37,5 +36,3 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
-
-

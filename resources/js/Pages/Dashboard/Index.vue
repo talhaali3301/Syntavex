@@ -17,12 +17,6 @@ const props = defineProps<CommandCentreProps>();
 
 const search = ref('');
 
-/**
- * The range selector re-queries the server: every windowed figure on this page
- * (KPIs, Fleet Trust, the Decision Graph and Recent Runs) is recomputed from
- * the runs inside the chosen window. Pending approvals and the Governance
- * Ledger are current/cumulative state, so they deliberately stay whole.
- */
 const selectRange = (key: string): void => {
     if (key === props.range.key) {
         return;
@@ -44,7 +38,6 @@ watch(
     },
 );
 
-/** The search box hands off to the Runs Explorer, which owns run search. */
 const submitSearch = (): void => {
     const term = search.value.trim();
 

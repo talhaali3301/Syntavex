@@ -17,8 +17,6 @@ const expanded = ref<number | null>(props.expandedRunId);
 const search = ref(props.filters.search);
 const searchInput = ref<HTMLInputElement | null>(null);
 
-// The chip has to name the key that actually works, so it follows the platform
-// rather than hard-coding the mockup's ⌘.
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
 const shortcutChip = isMac ? '⌘K' : 'Ctrl K';
 const shortcutSpoken = isMac ? 'Command K' : 'Control K';
@@ -28,7 +26,6 @@ const focusSearch = (event: KeyboardEvent): void => {
         return;
     }
 
-    // Firefox binds Ctrl+K to its own search bar; claim it for ours.
     event.preventDefault();
     searchInput.value?.focus();
     searchInput.value?.select();
@@ -37,7 +34,6 @@ const focusSearch = (event: KeyboardEvent): void => {
 onMounted(() => window.addEventListener('keydown', focusSearch));
 onUnmounted(() => window.removeEventListener('keydown', focusSearch));
 
-// Re-sync the open row whenever the server sends a new page of results.
 watch(
     () => props.expandedRunId,
     (value) => {
@@ -54,7 +50,6 @@ watch(
 
 type FilterPatch = Record<string, string | number | null>;
 
-/** Only non-default values ride in the URL, so a cleared filter leaves no trace. */
 const buildQuery = (patch: FilterPatch = {}): Record<string, string> => {
     const merged: FilterPatch = {
         status: props.filters.status,
@@ -76,7 +71,6 @@ const buildQuery = (patch: FilterPatch = {}): Record<string, string> => {
     return query;
 };
 
-/** Any filter change resets to page 1 — `page` is deliberately never merged in. */
 const applyFilters = (patch: FilterPatch = {}): void => {
     router.get('/runs', buildQuery(patch), {
         preserveState: true,
@@ -97,8 +91,6 @@ const widenRange = (): void => {
     applyFilters({ from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) });
 };
 
-// Search is wired live: it re-queries on a short debounce (LIKE against run key
-// and workflow name), so it is not presentational.
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
 
 watch(search, (value) => {
@@ -180,7 +172,6 @@ const toggleRow = (id: number): void => {
         </PageHeader>
 
         <div class="flex flex-col gap-[18px] px-8 pb-8 pt-[22px]">
-            <!-- Distribution + volume -->
             <div class="grid gap-[18px] lg:grid-cols-[minmax(0,1fr)_300px]">
                 <StatusDistributionStrip :distribution="distribution" />
                 <RunVolumeChart :volume="volume" />

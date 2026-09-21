@@ -14,22 +14,12 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Cover — the platform's entry surface at the root path.
- *
- * Public: it is the first thing a signed-out visitor lands on, so every figure
- * is a workspace-wide aggregate rather than anything user-scoped, and the whole
- * screen has to render against an empty database.
- */
 class CoverController extends Controller
 {
-    /** Run statuses that mean autonomy broke down and a human was pulled in. */
     private const INTERVENTION_STATUSES = ['needs_review', 'failed'];
 
-    /** Constellation canvas is a 100x100 viewBox centred on the core. */
     private const ORBIT_CENTRE = 50.0;
 
-    /** Busiest workflow sits closest to the core, quietest on the outer ring. */
     private const ORBIT_INNER = 27.0;
 
     private const ORBIT_OUTER = 43.0;
@@ -38,7 +28,6 @@ class CoverController extends Controller
 
     private const NODE_MAX_RADIUS = 5.4;
 
-    /** Share of a workflow's runs needing a human before its node turns amber/red. */
     private const NODE_CRITICAL_SHARE = 0.25;
 
     public function index(): Response
@@ -91,13 +80,6 @@ class CoverController extends Controller
         ]);
     }
 
-    /**
-     * One row per (workflow, status) with its run count, tokens and spend —
-     * the single aggregate every figure on the screen is folded out of.
-     *
-     * @param  array<int, int>  $workflowIds
-     * @return Collection<int, object>
-     */
     private function talliesByWorkflow(array $workflowIds): Collection
     {
         if ($workflowIds === []) {
@@ -120,9 +102,6 @@ class CoverController extends Controller
             ]);
     }
 
-    /**
-     * @param  array<int, int>  $workflowIds
-     */
     private function pendingApprovalCount(array $workflowIds): int
     {
         if ($workflowIds === []) {
@@ -138,9 +117,6 @@ class CoverController extends Controller
             ->count();
     }
 
-    /**
-     * @param  array<int, int>  $workflowIds
-     */
     private function latestRun(array $workflowIds): ?WorkflowRun
     {
         if ($workflowIds === []) {
@@ -154,9 +130,6 @@ class CoverController extends Controller
             ->first();
     }
 
-    /**
-     * @return array<int, array<string, string>>
-     */
     private function signals(
         int $total,
         int $completed,
@@ -198,14 +171,6 @@ class CoverController extends Controller
         ];
     }
 
-    /**
-     * Decision-graph motif: each workflow orbits the workspace core, placed by
-     * volume (busiest innermost) and toned by how often it needs a human.
-     *
-     * @param  EloquentCollection<int, Workflow>  $workflows
-     * @param  Collection<int, object>  $tallies
-     * @return array<string, mixed>
-     */
     private function constellation(
         EloquentCollection $workflows,
         Collection $tallies,
@@ -238,8 +203,6 @@ class CoverController extends Controller
                     ? self::ORBIT_INNER
                     : self::ORBIT_INNER + (($index / ($count - 1)) * (self::ORBIT_OUTER - self::ORBIT_INNER));
 
-                // Start at 12 o'clock and step clockwise so the busiest workflow
-                // always reads first, whatever the workspace holds.
                 $angle = deg2rad(-90 + ($index * (360 / $count)));
                 $share = $entry['runs'] / $busiest;
                 $x = self::ORBIT_CENTRE + ($orbit * cos($angle));
@@ -255,8 +218,6 @@ class CoverController extends Controller
                     'orbit' => round($orbit, 2),
                     'x' => round($x, 2),
                     'y' => round(self::ORBIT_CENTRE + ($orbit * sin($angle)), 2),
-                    // Labels read outwards from the core so they never cross it
-                    // or the neighbouring orbit.
                     'anchor' => match (true) {
                         $x > self::ORBIT_CENTRE + 1 => 'start',
                         $x < self::ORBIT_CENTRE - 1 => 'end',
@@ -286,9 +247,6 @@ class CoverController extends Controller
         ];
     }
 
-    /**
-     * @return array<int, array<string, string>>
-     */
     private function entries(int $total, int $workflowCount, int $pending): array
     {
         return [

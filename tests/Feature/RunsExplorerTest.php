@@ -12,11 +12,6 @@ use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
-/**
- * Runs Explorer: filtering, pagination and CSV export, exercised against the
- * real seeded dataset rather than fixtures, so the assertions track what the
- * screen actually shows in a demo.
- */
 class RunsExplorerTest extends TestCase
 {
     use RefreshDatabase;
@@ -31,25 +26,16 @@ class RunsExplorerTest extends TestCase
         $this->user = User::query()->where('email', 'admin@syntavex.local')->firstOrFail();
     }
 
-    /** The id column of the newest run, which the seeder pins to key #8421. */
     private function flagship(): WorkflowRun
     {
         return WorkflowRun::query()->where('run_key', '8421')->firstOrFail();
     }
 
-    /** The newest run in the workspace, which the screen's date window hangs off. */
     private function anchor(): Carbon
     {
         return Carbon::parse(WorkflowRun::query()->max('created_at'));
     }
 
-    /**
-     * A window of $days ending $endingDaysAgo days before the newest run.
-     * Ranges are derived from the data rather than typed in, so they keep
-     * covering the seeded runs however long after the seed the suite runs.
-     *
-     * @return array{0: Carbon, 1: Carbon}
-     */
     private function window(int $days, int $endingDaysAgo = 0): array
     {
         $to = $this->anchor()->subDays($endingDaysAgo)->startOfDay();
@@ -57,7 +43,6 @@ class RunsExplorerTest extends TestCase
         return [$to->copy()->subDays($days - 1), $to];
     }
 
-    /** The same window, as a `from=...&to=...` query string. */
     private function windowQuery(int $days, int $endingDaysAgo = 0): string
     {
         [$from, $to] = $this->window($days, $endingDaysAgo);
@@ -70,9 +55,6 @@ class RunsExplorerTest extends TestCase
         return $this->actingAs($this->user)->get($uri);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function props(string $uri): array
     {
         $response = $this->visit($uri);
@@ -104,13 +86,11 @@ class RunsExplorerTest extends TestCase
     {
         $chips = collect($this->props('/runs')['statusChips'])->keyBy('key');
 
-        // The ALL chip is the sum of the three status chips...
         $this->assertSame(
             $chips['completed']['count'] + $chips['needs_review']['count'] + $chips['failed']['count'],
             $chips['all']['count'],
         );
 
-        // ...and each chip promises exactly what clicking it returns.
         foreach (['completed', 'needs_review', 'failed'] as $status) {
             $filtered = $this->props("/runs?status={$status}");
 
@@ -150,10 +130,6 @@ class RunsExplorerTest extends TestCase
 
     public function test_counts_are_pluralised_in_the_copy_they_appear_in(): void
     {
-        // The seeder scatters run timestamps at random across the last 14
-        // days, so any window over the seeded data holds an unpredictable
-        // number of runs. Park a known handful on consecutive days a year
-        // back, well clear of the seeded band, and read the copy off those.
         $origin = $this->anchor()->subYear()->startOfDay();
 
         $parked = WorkflowRun::query()
@@ -172,26 +148,21 @@ class RunsExplorerTest extends TestCase
         $last = $origin->copy()->addDays(2)->toDateString();
         $empty = $origin->copy()->subDay()->toDateString();
 
-        // One run, one day: both halves singular.
         $this->assertSame(
             '1 run · 1 day',
             $this->props("/runs?from={$first}&to={$first}")['distribution']['scope_label'],
         );
 
-        // Three runs over three days: both halves plural.
         $this->assertSame(
             '3 runs · 3 days',
             $this->props("/runs?from={$first}&to={$last}")['distribution']['scope_label'],
         );
 
-        // Zero is plural, and the empty day next door proves the parked runs
-        // are the only thing being counted.
         $this->assertSame(
             '0 runs · 1 day',
             $this->props("/runs?from={$empty}&to={$empty}")['distribution']['scope_label'],
         );
 
-        // A singular count beside a plural window, off the default 14 days.
         $this->assertSame(
             '1 run · 14 days',
             $this->props('/runs?search=8421')['distribution']['scope_label'],
@@ -200,8 +171,6 @@ class RunsExplorerTest extends TestCase
 
     public function test_the_distribution_window_reports_the_selected_range_not_the_default(): void
     {
-        // Regression: the strip used to read "N runs · 14 days" no matter how
-        // wide the date filter actually was.
         $this->assertSame(14, $this->props('/runs')['distribution']['window_days']);
         $this->assertSame(
             90,
@@ -219,8 +188,6 @@ class RunsExplorerTest extends TestCase
 
         $props = $this->props('/runs?'.$this->windowQuery(7, 4));
 
-        // Regression: the window used to hang off the newest run in the whole
-        // workspace, so every historic range read "$0.00 / 3d".
         $expected = (float) WorkflowRun::query()
             ->whereBetween('created_at', [
                 $to->copy()->endOfDay()->subDays(3),
@@ -394,7 +361,6 @@ class RunsExplorerTest extends TestCase
 
         $row = $props['runs'][0];
 
-        // Row columns, straight off the seeded totals.
         $this->assertSame('8421', $row['run_key']);
         $this->assertSame('Priority Refund Review', $row['workflow']);
         $this->assertSame('needs_review', $row['status']);
@@ -410,12 +376,10 @@ class RunsExplorerTest extends TestCase
         $this->assertSame('$0.70', $row['cost_label']);
         $this->assertSame($run->created_at->format('M j · H:i:s'), $row['started_label']);
 
-        // ...and the same numbers on the model they were read from.
         $this->assertSame(5850, $run->total_duration_ms);
         $this->assertSame(13900, $run->total_tokens);
         $this->assertSame('0.6950', $run->total_cost_usd);
 
-        // Expansion panel.
         $expansion = $row['expansion'];
         $this->assertSame(5, $expansion['steps']);
         $this->assertSame(2, $expansion['tool_calls']);
@@ -432,8 +396,6 @@ class RunsExplorerTest extends TestCase
         $this->assertFalse($expansion['decision']['signed']);
         $this->assertSame('unsigned', $expansion['decision']['signed_label']);
 
-        // The approval summary is shown verbatim, and its $120 matches the
-        // amount the gate actually blocked.
         $approval = $run->approvalRequests()->firstOrFail();
         $this->assertSame($approval->summary, $expansion['decision']['summary']);
         $this->assertStringContainsString('$120', $expansion['decision']['summary']);
@@ -457,8 +419,6 @@ class RunsExplorerTest extends TestCase
             $run->approvalRequests()->firstOrFail()->summary,
         );
 
-        // The outage date in the rationale is derived from the run, not typed
-        // in, so it never drifts away from the dates shown on screen.
         $this->assertStringContainsString(
             $run->created_at->copy()->subDay()->toDateString(),
             $reasoning->output_payload['rationale'],
@@ -467,8 +427,6 @@ class RunsExplorerTest extends TestCase
 
     public function test_a_goodwill_credit_reads_as_a_refund_with_no_ticket(): void
     {
-        // Regression: this run used to fall back to a step name for its
-        // objective and render "Approve_with_flagd by agent" as its decision.
         $props = $this->props('/runs?status=needs_review');
         $row = collect($props['runs'])->firstWhere('objective', 'Refund $65.00 · no ticket');
 
@@ -492,7 +450,6 @@ class RunsExplorerTest extends TestCase
             array_shift($rows),
         );
 
-        // Every page, not just the one on screen.
         $this->assertCount($total, $rows);
         $this->assertGreaterThan(count($this->props('/runs')['runs']), count($rows));
     }
@@ -558,9 +515,6 @@ class RunsExplorerTest extends TestCase
         );
     }
 
-    /**
-     * @return array<int, array<int, string>>
-     */
     private function csvRows(TestResponse $response): array
     {
         $csv = $response->streamedContent();

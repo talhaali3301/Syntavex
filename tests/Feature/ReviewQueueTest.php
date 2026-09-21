@@ -13,12 +13,6 @@ use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
-/**
- * Review Queue, exercised against the real seeded dataset. The bulk-deletion
- * intercept is the flagship case; the refund, goodwill and low-confidence runs
- * cover the rest of the severity ladder and the paths where a gate carries no
- * row count or amount.
- */
 class ReviewQueueTest extends TestCase
 {
     use RefreshDatabase;
@@ -53,9 +47,6 @@ class ReviewQueueTest extends TestCase
         return $this->actingAs($this->user)->get($uri);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function props(string $uri = '/reviews'): array
     {
         $response = $this->visit($uri);
@@ -64,18 +55,11 @@ class ReviewQueueTest extends TestCase
         return $response->viewData('page')['props'];
     }
 
-    /**
-     * @param  array<string, string>  $payload
-     */
     private function decide(ApprovalRequest $approval, array $payload): TestResponse
     {
         return $this->actingAs($this->user)
             ->post("/reviews/{$approval->id}/decision", $payload);
     }
-
-    // -----------------------------------------------------------------
-    // Queue
-    // -----------------------------------------------------------------
 
     public function test_the_review_queue_requires_authentication(): void
     {
@@ -112,8 +96,6 @@ class ReviewQueueTest extends TestCase
 
         $this->assertSame($levels, collect($levels)->sort()->values()->all());
 
-        // The destructive intercept outscores the refund breach, so it leads
-        // the critical band even though the refund has waited longer.
         $this->assertSame($this->intercept()->workflowRun->run_key, $queue[0]['run_key']);
         $this->assertGreaterThan($queue[1]['risk']['score'], $queue[0]['risk']['score']);
     }
@@ -159,10 +141,6 @@ class ReviewQueueTest extends TestCase
         }
     }
 
-    /**
-     * #8421 is critical but reversible — a refund can be clawed back — so it
-     * stays a normal queue row. Only the bulk deletion freezes.
-     */
     public function test_a_critical_but_reversible_breach_renders_as_a_normal_row(): void
     {
         $queue = collect($this->props()['queue']);
@@ -190,10 +168,6 @@ class ReviewQueueTest extends TestCase
             $this->assertNotEmpty($item['readout']['lines']);
         }
     }
-
-    // -----------------------------------------------------------------
-    // Decisions
-    // -----------------------------------------------------------------
 
     public function test_approving_signs_the_record_releases_the_held_step_and_clears_the_queue_row(): void
     {
@@ -297,10 +271,6 @@ class ReviewQueueTest extends TestCase
         $this->assertSame('pending', $this->intercept()->refresh()->status);
     }
 
-    // -----------------------------------------------------------------
-    // Downstream screens
-    // -----------------------------------------------------------------
-
     public function test_the_runs_explorer_and_inspector_reflect_an_approval(): void
     {
         $approval = $this->intercept();
@@ -337,10 +307,6 @@ class ReviewQueueTest extends TestCase
         $this->assertSame('rejected', $inspector['decision']['resolution']['status']);
         $this->assertStringContainsString('Outside the ceiling', $inspector['error_message']);
     }
-
-    // -----------------------------------------------------------------
-    // Empty state
-    // -----------------------------------------------------------------
 
     public function test_the_queue_empties_once_every_pending_item_is_processed(): void
     {

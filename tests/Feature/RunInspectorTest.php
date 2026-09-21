@@ -12,11 +12,6 @@ use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
-/**
- * Run Inspector, exercised against the real seeded dataset. The flagship run
- * #8421 carries the breached policy gate; a plain completed run covers the
- * paths where there is no risk flag and nothing to sign.
- */
 class RunInspectorTest extends TestCase
 {
     use RefreshDatabase;
@@ -50,9 +45,6 @@ class RunInspectorTest extends TestCase
         return $this->actingAs($this->user)->get($uri);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function props(WorkflowRun $run): array
     {
         $response = $this->visit("/runs/{$run->id}");
@@ -139,7 +131,6 @@ class RunInspectorTest extends TestCase
         $cost = $steps->sum(fn (RunStep $step): float => (float) $step->cost_usd);
         $this->assertStringContainsString('$'.number_format($cost, 2), $calls['summary']);
 
-        // The Stripe credit never executed, so it must not claim an output.
         $pending = collect($calls['items'])->firstWhere('status', 'pending');
         $this->assertNotNull($pending);
         $this->assertNull($pending['output']);

@@ -13,10 +13,6 @@ use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
-/**
- * Command Centre: the aggregate figures, the observation window and the
- * Decision Graph, all checked against the rows they are derived from.
- */
 class CommandCentreTest extends TestCase
 {
     use RefreshDatabase;
@@ -31,9 +27,6 @@ class CommandCentreTest extends TestCase
         $this->user = User::query()->where('email', 'admin@syntavex.local')->firstOrFail();
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     private function props(string $uri = '/dashboard'): array
     {
         $response = $this->actingAs($this->user)->get($uri);
@@ -47,12 +40,6 @@ class CommandCentreTest extends TestCase
         return Carbon::parse(WorkflowRun::query()->max('created_at'));
     }
 
-    /**
-     * The runs the given window covers, computed independently of the
-     * controller so the assertions are not circular.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection<int, WorkflowRun>
-     */
     private function runsInWindow(int $days): \Illuminate\Database\Eloquent\Collection
     {
         $anchor = $this->anchor();
@@ -123,8 +110,6 @@ class CommandCentreTest extends TestCase
 
     public function test_the_spend_kpi_is_anchored_to_the_newest_run_not_wall_clock_now(): void
     {
-        // Regression: this figure used to be "cost in the last 24h from now()",
-        // so demoing the seeded data a day later showed $0.00 / 0 runs.
         $before = $this->props()['kpis'];
 
         $this->travel(45)->days();
@@ -153,10 +138,8 @@ class CommandCentreTest extends TestCase
             $day['kpis']['total_executions']['value'],
         );
 
-        // The 30-day window reaches the whole seeded dataset.
         $this->assertSame(WorkflowRun::query()->count(), $month['kpis']['total_executions']['value']);
 
-        // Recent Runs and the graph follow the window too.
         $this->assertCount(min(6, $this->runsInWindow(1)->count()), $day['recentRuns']);
         $this->assertSame(
             $this->runsInWindow(1)->count(),
@@ -253,7 +236,6 @@ class CommandCentreTest extends TestCase
 
     public function test_the_ledger_stays_cumulative_when_the_window_narrows(): void
     {
-        // An audit trail does not shrink because you looked at less of it.
         $this->assertSame(
             $this->props('/dashboard')['governanceLedger'],
             $this->props('/dashboard?range=24h')['governanceLedger'],
@@ -309,7 +291,6 @@ class CommandCentreTest extends TestCase
             $graph['callout']['detail'],
         );
 
-        // Every other cluster is tethered back to the flagged one.
         $this->assertCount(count($graph['clusters']) - 1, $graph['links']);
     }
 
@@ -339,7 +320,6 @@ class CommandCentreTest extends TestCase
         $flagship = $recent[0];
         $this->assertSame('8421', $flagship['run_key']);
         $this->assertSame('refund-reviewer', $flagship['agent']);
-        // The run is parked on the blocked gate, not its last step.
         $this->assertSame('Policy ceiling check', $flagship['step']);
         $this->assertSame('5.85s', $flagship['latency_label']);
         $this->assertSame('13,900', $flagship['tokens_label']);
@@ -388,11 +368,6 @@ class CommandCentreTest extends TestCase
         );
     }
 
-    /**
-     * Total runs drawn on the graph, cores included.
-     *
-     * @param  array<string, mixed>  $graph
-     */
     private function graphRunCount(array $graph): int
     {
         $count = 0;

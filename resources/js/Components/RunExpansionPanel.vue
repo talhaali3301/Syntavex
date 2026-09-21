@@ -28,7 +28,6 @@ const RISK_TEXT: Record<StatusTone, string> = {
         class="mb-4 ml-6 mr-5 rounded-xl border border-[rgba(160,222,245,0.16)] bg-gradient-to-br from-accent-cyan/[0.08] to-accent-violet/[0.08] px-4 py-3.5 backdrop-blur-lg"
     >
         <div class="flex flex-wrap items-stretch gap-4">
-            <!-- Trace preview -->
             <div class="flex min-w-[190px] flex-col gap-[7px]">
                 <h4 class="font-mono text-[9.5px] font-medium tracking-[0.12em] text-ink-600">
                     TRACE PREVIEW
@@ -57,7 +56,6 @@ const RISK_TEXT: Record<StatusTone, string> = {
 
             <div class="w-px self-stretch bg-[rgba(160,205,245,0.12)]" aria-hidden="true" />
 
-            <!-- Risk -->
             <div class="flex flex-col gap-[5px]">
                 <h4 class="font-mono text-[9.5px] font-medium tracking-[0.12em] text-ink-600">
                     RISK LEVEL
@@ -77,7 +75,6 @@ const RISK_TEXT: Record<StatusTone, string> = {
 
             <div class="w-px self-stretch bg-[rgba(160,205,245,0.12)]" aria-hidden="true" />
 
-            <!-- Decision -->
             <div class="flex min-w-0 flex-col gap-[5px]">
                 <h4 class="font-mono text-[9.5px] font-medium tracking-[0.12em] text-ink-600">
                     DECISION
@@ -101,7 +98,6 @@ const RISK_TEXT: Record<StatusTone, string> = {
             </div>
         </div>
 
-        <!-- Seeded approval summary, verbatim -->
         <p
             v-if="expansion.decision?.summary"
             class="mt-3 border-t border-[rgba(160,205,245,0.12)] pt-2.5 text-[11.5px] leading-relaxed text-ink-400"

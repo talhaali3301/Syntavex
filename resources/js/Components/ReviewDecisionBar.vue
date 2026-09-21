@@ -13,7 +13,6 @@ const form = useForm<{ decision: ReviewDecision | ''; note: string }>({
     note: '',
 });
 
-/** A frozen item spends its first click arming the button, not deciding. */
 const armed = ref<ReviewDecision | null>(null);
 let disarmTimer: ReturnType<typeof setTimeout> | undefined;
 

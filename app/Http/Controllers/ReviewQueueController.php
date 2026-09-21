@@ -15,19 +15,10 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Review Queue (Human-in-the-Loop Desk).
- *
- * Lists every approval still waiting on a person and records the verdict when
- * one is given. This is the only screen that writes: a decision moves the
- * approval, the run and the step the gate held back, and leaves an audit event
- * behind. The Runs Explorer and Run Inspector read those same rows.
- */
 class ReviewQueueController extends Controller
 {
     private const RESOLVED_LIMIT = 5;
 
-    /** Window the desk's throughput figures are measured over. */
     private const ACTIVITY_DAYS = 7;
 
     public function index(): Response
@@ -63,8 +54,6 @@ class ReviewQueueController extends Controller
                 'status' => $decision->approvalStatus(),
                 'resolved_by' => $reviewer,
                 'resolution_notes' => $note,
-                // Request-changes hands the run back rather than closing it out,
-                // so it never gets a resolution timestamp.
                 'resolved_at' => $decision->isTerminal() ? Carbon::now() : null,
             ])->save();
 
@@ -99,17 +88,6 @@ class ReviewQueueController extends Controller
         return redirect()->route('reviews.index');
     }
 
-    // -----------------------------------------------------------------
-    // Queue
-    // -----------------------------------------------------------------
-
-    /**
-     * Severity band first, then risk score, then the longest wait — a critical
-     * item never sits behind a low-risk one that happens to be older, and the
-     * worst breach in a band leads it.
-     *
-     * @return Collection<int, ApprovalRequest>
-     */
     private function pending(): Collection
     {
         return ApprovalRequest::query()
@@ -124,14 +102,6 @@ class ReviewQueueController extends Controller
             ->values();
     }
 
-    // -----------------------------------------------------------------
-    // Desk context
-    // -----------------------------------------------------------------
-
-    /**
-     * @param  Collection<int, ApprovalRequest>  $pending
-     * @return array<string, mixed>
-     */
     private function stats(Collection $pending): array
     {
         $since = Carbon::now()->subDays(self::ACTIVITY_DAYS);
@@ -159,12 +129,6 @@ class ReviewQueueController extends Controller
         ];
     }
 
-    /**
-     * Decisions per day across the activity window, for the header trace.
-     *
-     * @param  Collection<int, ApprovalRequest>  $decided
-     * @return array<int, array<string, mixed>>
-     */
     private function decisionSeries(Collection $decided, Carbon $since): array
     {
         $byDay = $decided->groupBy(fn (ApprovalRequest $a): string => $a->resolved_at->toDateString());
@@ -184,9 +148,6 @@ class ReviewQueueController extends Controller
         return $days;
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
     private function recentlyResolved(): array
     {
         return ApprovalRequest::query()
@@ -209,12 +170,6 @@ class ReviewQueueController extends Controller
             ->all();
     }
 
-    /**
-     * Decisions recorded per reviewer, with the signed-in user marked.
-     *
-     * @param  Collection<int, ApprovalRequest>  $pending
-     * @return array<string, mixed>
-     */
     private function reviewerLoad(Collection $pending): array
     {
         $decisions = ApprovalRequest::query()
@@ -233,8 +188,6 @@ class ReviewQueueController extends Controller
                 'decisions' => (int) ($decisions[$user->name] ?? 0),
             ]);
 
-        // A reviewer who has signed something but no longer has an account
-        // still owns those decisions; the ledger would otherwise lose them.
         foreach ($decisions as $name => $total) {
             if (! $rows->contains('name', $name)) {
                 $rows->push(['name' => $name, 'is_you' => false, 'decisions' => (int) $total]);
@@ -251,12 +204,6 @@ class ReviewQueueController extends Controller
         ];
     }
 
-    /**
-     * Pending items as a small graph around the reviewer.
-     *
-     * @param  Collection<int, ApprovalRequest>  $pending
-     * @return array<string, mixed>
-     */
     private function constellation(Collection $pending): array
     {
         $items = $pending->values();

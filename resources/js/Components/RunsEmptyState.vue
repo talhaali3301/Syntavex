@@ -12,11 +12,6 @@ const emit = defineEmits<{
     (e: 'widen'): void;
 }>();
 
-/**
- * The default window is the 14 days ending at the newest run in the workspace,
- * so with no filters applied an empty result can only mean the workspace has
- * no runs at all — never that the filters were too narrow.
- */
 const unfiltered = computed(() => props.filters.is_default);
 
 const workflowName = computed(

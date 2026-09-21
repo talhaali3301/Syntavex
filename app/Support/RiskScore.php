@@ -2,17 +2,6 @@
 
 namespace App\Support;
 
-/**
- * Risk score for a run that tripped a policy gate.
- *
- *   score = base(risk_level)
- *         + 0.15 × min(1, policy_overshoot ÷ policy_limit)
- *         + 0.10 × (1 − model_confidence)
- *
- * The seeded level carries most of the weight; the remainder rewards
- * precision — how far past the limit the run went, and how unsure the model
- * was when it decided.
- */
 final class RiskScore
 {
     private const BASE = ['critical' => 0.75, 'high' => 0.60, 'medium' => 0.40, 'low' => 0.20];

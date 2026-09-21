@@ -1,8 +1,4 @@
 <script setup lang="ts">
-/**
- * The bar every screen opens with. Structure, height, hairline, wash and blur
- * are fixed; a screen only chooses its accent tone and fills the slots.
- */
 type Tone = 'neutral' | 'accent' | 'violet' | 'review' | 'critical';
 
 withDefaults(
@@ -23,7 +19,6 @@ const EDGE: Record<Tone, string> = {
     critical: 'border-status-critical/[0.18]',
 };
 
-/** The bloom behind the title, in the screen's own colour. */
 const GLOW: Record<Tone, string | null> = {
     neutral: null,
     accent: 'bg-[radial-gradient(circle,rgba(45,226,230,0.13),rgba(45,226,230,0)_70%)]',

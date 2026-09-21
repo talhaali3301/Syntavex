@@ -6,18 +6,8 @@ use App\Models\ApprovalRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Shapes a pending ApprovalRequest for the Command Centre "Human Attention"
- * panel: the ask itself, plus enough run/step context to act without
- * leaving the Overview.
- *
- * Expects `runStep` and `workflowRun.workflow` to be eager-loaded.
- *
- * @mixin ApprovalRequest
- */
 class ApprovalRequestResource extends JsonResource
 {
-    /** Maps a risk level onto the Phase 1 status colour tokens. */
     private const RISK_TONES = [
         'critical' => 'critical',
         'high' => 'critical',
@@ -25,9 +15,6 @@ class ApprovalRequestResource extends JsonResource
         'low' => 'info',
     ];
 
-    /**
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         $run = $this->workflowRun;

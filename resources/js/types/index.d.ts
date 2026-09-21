@@ -11,15 +11,9 @@ export type PageProps<
     auth: {
         user: User;
     };
-    /** Pending approvals across the fleet — drives the Review Queue rail badge. */
     pendingReviews: number;
 };
 
-/* -------------------------------------------------------------------------
- * Command Centre
- * ---------------------------------------------------------------------- */
-
-/** Maps onto the Phase 1 `status.*` colour tokens in tailwind.config.js. */
 export type StatusTone = 'completed' | 'review' | 'critical' | 'info';
 
 export type RunStatus = 'completed' | 'needs_review' | 'failed' | 'running';
@@ -35,7 +29,6 @@ export interface Workspace {
 }
 
 export interface KpiMetric {
-    /** Card heading, authored server-side so it can track the selected range. */
     label: string;
     value: number;
     display: string;
@@ -60,7 +53,6 @@ export interface DashboardRange {
     key: DashboardRangeKey;
     label: string;
     days: number;
-    /** The newest run every window is measured back from. */
     anchor_label: string;
     options: DashboardRangeOption[];
 }
@@ -144,7 +136,6 @@ export interface DecisionGraphCluster {
     risk_ratio: number;
     risk_label: string;
     flagged: boolean;
-    /** The run that triggered the flag, drawn at the cluster's core. */
     core: DecisionGraphNode | null;
     nodes: DecisionGraphNode[];
 }
@@ -175,7 +166,6 @@ export interface DecisionGraphLegendItem {
     count: number;
 }
 
-/** The box the drawing occupies, in canvas units — labels included. */
 export interface DecisionGraphBounds {
     x: number;
     y: number;
@@ -223,10 +213,6 @@ export interface CommandCentreProps {
     governanceLedger: GovernanceLedgerData;
 }
 
-/* -------------------------------------------------------------------------
- * Runs Explorer
- * ---------------------------------------------------------------------- */
-
 export type BarTone = 'accent' | 'info' | 'review' | 'critical';
 
 export type StepTone = 'completed' | 'review' | 'critical' | 'info' | 'idle';
@@ -259,7 +245,6 @@ export interface DistributionSegment {
 export interface DistributionData {
     total: number;
     window_days: number;
-    /** "34 runs · 14 days", pluralised server-side. */
     scope_label: string;
     success_rate: number;
     success_label: string;
@@ -381,10 +366,6 @@ export interface RunsExplorerProps {
     showing: { filtered: number; total: number };
 }
 
-/* -------------------------------------------------------------------------
- * Run Inspector
- * ---------------------------------------------------------------------- */
-
 export type TraceTone =
     | 'reasoning'
     | 'tool'
@@ -432,7 +413,6 @@ export interface ReasoningTimeline {
     title: string;
     meta: string;
     entries: ReasoningEntry[];
-    /** The run stopped mid-flight, so the trace has no closing line. */
     open: boolean;
 }
 
@@ -556,10 +536,6 @@ export interface RunInspectorProps {
     related: RelatedRun[];
 }
 
-/* -------------------------------------------------------------------------
- * Review Queue (Human-in-the-Loop Desk)
- * ---------------------------------------------------------------------- */
-
 export type ReviewDecision = 'approve' | 'reject' | 'request_changes';
 
 export interface ReviewRisk {
@@ -600,7 +576,6 @@ export interface ReviewQueueItem {
     waiting_seconds: number;
     waiting_label: string;
     sla_label: string;
-    /** The held action is irreversible — renders as a Freeze Frame rather than a row. */
     frozen: boolean;
     intercept: ReviewIntercept;
     readout: ReviewReadout;
@@ -656,10 +631,6 @@ export interface ReviewQueueProps {
     reviewers: ReviewerLoad;
     constellation: QueueConstellation;
 }
-
-/* -------------------------------------------------------------------------
- * Cover
- * ---------------------------------------------------------------------- */
 
 export type SignalAccent = 'cyan' | 'violet' | 'emerald' | 'amber';
 
