@@ -1,16 +1,8 @@
 <script setup lang="ts">
 import type { DecisionRecord } from '@/types';
+import { Link } from '@inertiajs/vue3';
 
 defineProps<{ decision: DecisionRecord }>();
-
-/**
- * The Human-in-the-Loop desk that owns these verdicts is a later phase, so the
- * bar shows the actions a pending record offers without pretending to write.
- */
-const PENDING_NOTE = 'Review Queue — not built yet';
-
-const ACTION =
-    'cursor-not-allowed rounded-[10px] px-4 py-3 font-mono text-[11px] font-semibold tracking-[0.06em] transition duration-200';
 </script>
 
 <template>
@@ -25,10 +17,7 @@ const ACTION =
 
         <div class="relative flex flex-wrap items-center gap-x-[22px] gap-y-4">
             <div class="flex min-w-0 flex-col gap-1.5">
-                <h2
-                    id="decision-record-heading"
-                    class="font-mono text-[10.5px] font-semibold tracking-[0.14em] text-glow-teal"
-                >
+                <h2 id="decision-record-heading" class="panel-eyebrow text-glow-teal">
                     {{ decision.eyebrow }}
                 </h2>
                 <p class="font-display text-[21px] font-semibold leading-tight tracking-[-0.01em] text-ink-100">
@@ -42,32 +31,18 @@ const ACTION =
 
             <div class="flex-1" />
 
-            <div v-if="decision.pending" class="flex flex-none items-center gap-2.5">
-                <button
-                    type="button"
-                    disabled
-                    :title="PENDING_NOTE"
-                    :class="`${ACTION} border border-[rgba(160,205,245,0.16)] text-ink-500`"
-                >
-                    REQUEST CHANGES
-                </button>
-                <button
-                    type="button"
-                    disabled
-                    :title="PENDING_NOTE"
-                    :class="`${ACTION} border border-status-critical/50 bg-status-critical/[0.12] px-[18px] text-[#FFC3C9]`"
-                >
-                    REJECT
-                </button>
-                <button
-                    type="button"
-                    disabled
-                    :title="PENDING_NOTE"
-                    :class="`${ACTION} bg-[linear-gradient(140deg,#7DEDF0,#2DE2E6)] px-[22px] text-[#061020] shadow-[0_0_30px_rgba(45,226,230,0.4)]`"
-                >
-                    APPROVE &amp; SIGN
-                </button>
-            </div>
+            <!-- Verdicts are signed at the desk, so this hands the run over
+                 rather than duplicating the decision controls here. -->
+            <Link
+                v-if="decision.pending"
+                href="/reviews"
+                class="flex flex-none items-center gap-2.5 rounded-[10px] bg-[linear-gradient(140deg,#7DEDF0,#2DE2E6)] px-[22px] py-3 font-mono text-[11px] font-semibold tracking-[0.06em] text-[#061020] shadow-[0_0_30px_rgba(45,226,230,0.4)] transition duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
+            >
+                SIGN OFF AT THE DESK
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                    <path d="M5 12h13M12.5 6.5 19 12l-6.5 5.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </Link>
 
             <p
                 v-else-if="decision.resolution"

@@ -12,34 +12,42 @@ const emit = defineEmits<{
 }>();
 
 /**
- * The mockup track is 636px of fixed columns, so below ~1280px the two fluid
- * columns are squeezed to nothing and the fixed cells spill over their
- * neighbours. Columns are shed as the viewport narrows instead: the track and
- * the per-column breakpoints below are the single source of truth, and each
- * `AT_*` class is applied to both the header cell and the row cell so a column
- * can never survive in one and vanish from the other.
+ * The mockup track is 650px of fixed columns, so columns are shed as the
+ * viewport narrows rather than letting the fixed cells crush the two fluid
+ * ones. The track and the per-column breakpoints below are the single source
+ * of truth, and each `AT_*` class is applied to both the header cell and the
+ * row cell so a column can never survive in one and vanish from the other.
  *
- * ≥1280 the full mockup track is intact; below that the dropped values move
- * into the objective cell's meta line rather than leaving the screen.
+ * The thresholds are deliberately not Tailwind's md/lg/xl. Those measure the
+ * viewport, but the table only ever gets `viewport - 140px` (76px nav rail +
+ * 2×32px gutters), so at a 1024px viewport the lg track was being handed 884px
+ * and the objective cell collapsed to an ellipsis. Each threshold is therefore
+ * its track's fixed width plus the ~520px the two fluid cells need to stay
+ * readable, plus that 140px of chrome.
+ *
+ * Below the dropped columns' thresholds the values move into the objective
+ * cell's meta line rather than leaving the screen.
  */
 const GRID = [
     'grid items-center',
     'grid-cols-[4px_104px_minmax(0,1fr)_118px]',
-    'md:grid-cols-[4px_104px_minmax(0,1.05fr)_minmax(0,1.35fr)_118px]',
-    'lg:grid-cols-[4px_104px_minmax(0,1.05fr)_minmax(0,1.35fr)_136px_92px_118px]',
-    'xl:grid-cols-[4px_104px_minmax(0,1.05fr)_minmax(0,1.35fr)_136px_92px_90px_92px_118px]',
+    'min-[960px]:grid-cols-[4px_104px_minmax(0,1.05fr)_minmax(0,1.35fr)_118px]',
+    'min-[1150px]:grid-cols-[4px_104px_minmax(0,1.05fr)_minmax(0,1.35fr)_150px_92px_118px]',
+    'min-[1330px]:grid-cols-[4px_104px_minmax(0,1.05fr)_minmax(0,1.35fr)_150px_92px_90px_92px_118px]',
 ].join(' ');
 
-const AT_MD = 'hidden md:block';
+const AT_WORKFLOW = 'hidden min-[960px]:block';
 
-const AT_LG = 'hidden lg:block';
+const AT_TIMING = 'hidden min-[1150px]:block';
 
-const AT_XL = 'hidden xl:block';
+const AT_USAGE = 'hidden min-[1330px]:block';
 
 /** Inverses of the above: a value shows in the meta line exactly while its own column is gone. */
-const BELOW_LG = 'lg:hidden';
+const BELOW_WORKFLOW = 'min-[960px]:hidden';
 
-const BELOW_XL = 'xl:hidden';
+const BELOW_TIMING = 'min-[1150px]:hidden';
+
+const BELOW_USAGE = 'min-[1330px]:hidden';
 
 const EDGE: Record<StatusTone, string> = {
     completed: 'bg-status-completed',
@@ -75,12 +83,12 @@ const PILL: Record<StatusTone, string> = {
         >
             <span aria-hidden="true" />
             <span class="pl-4">RUN ID</span>
-            <span :class="AT_MD">WORKFLOW</span>
+            <span :class="AT_WORKFLOW">WORKFLOW</span>
             <span>AGENT / OBJECTIVE</span>
-            <span :class="AT_LG">STARTED</span>
-            <span :class="AT_LG">DURATION</span>
-            <span :class="AT_XL">TOKENS</span>
-            <span :class="AT_XL">COST</span>
+            <span class="pr-3" :class="AT_TIMING">STARTED</span>
+            <span class="pr-3" :class="AT_TIMING">DURATION</span>
+            <span class="pr-3" :class="AT_USAGE">TOKENS</span>
+            <span class="pr-3" :class="AT_USAGE">COST</span>
             <span class="text-right">STATUS</span>
         </div>
 
@@ -133,14 +141,14 @@ const PILL: Record<StatusTone, string> = {
                 <span
                     class="truncate pr-2.5 text-xs"
                     :class="[
-                        AT_MD,
+                        AT_WORKFLOW,
                         expandedId === run.id ? 'font-medium text-glow-violet' : 'text-ink-400',
                     ]"
                 >
                     {{ run.workflow }}
                 </span>
 
-                <span class="flex min-w-0 flex-col gap-0.5 pr-2.5 xl:flex-row xl:items-center xl:gap-2.5">
+                <span class="flex min-w-0 flex-col gap-0.5 pr-2.5 min-[1330px]:flex-row min-[1330px]:items-center min-[1330px]:gap-2.5">
                     <span class="flex min-w-0 items-center gap-2.5">
                         <span class="truncate text-[12.5px] font-medium" :class="expandedId === run.id ? 'text-ink-100' : 'text-ink-200'">
                             {{ run.objective }}
@@ -148,18 +156,19 @@ const PILL: Record<StatusTone, string> = {
                         <span class="shrink-0 font-mono text-[10px] text-ink-900">{{ run.agent }}</span>
                     </span>
 
-                    <span class="flex items-center gap-3 font-mono text-[10px] text-ink-800" :class="BELOW_XL">
-                        <span :class="BELOW_LG">{{ run.started_label }}</span>
-                        <span :class="BELOW_LG">{{ run.duration_label }}</span>
+                    <span class="flex items-center gap-3 font-mono text-[10px] text-ink-800" :class="BELOW_USAGE">
+                        <span class="truncate text-ink-700" :class="BELOW_WORKFLOW">{{ run.workflow }}</span>
+                        <span :class="BELOW_TIMING">{{ run.started_label }}</span>
+                        <span :class="BELOW_TIMING">{{ run.duration_label }}</span>
                         <span>{{ run.tokens_label }}</span>
                         <span>{{ run.cost_label }}</span>
                     </span>
                 </span>
 
-                <span class="font-mono text-[11px] text-ink-600" :class="AT_LG">{{ run.started_label }}</span>
-                <span class="font-mono text-[11px] text-ink-300" :class="AT_LG">{{ run.duration_label }}</span>
-                <span class="font-mono text-[11px] text-ink-600" :class="AT_XL">{{ run.tokens_label }}</span>
-                <span class="font-mono text-[11px] font-medium text-ink-300" :class="AT_XL">{{ run.cost_label }}</span>
+                <span class="pr-3 font-mono text-[11px] text-ink-600" :class="AT_TIMING">{{ run.started_label }}</span>
+                <span class="pr-3 font-mono text-[11px] text-ink-300" :class="AT_TIMING">{{ run.duration_label }}</span>
+                <span class="pr-3 font-mono text-[11px] text-ink-600" :class="AT_USAGE">{{ run.tokens_label }}</span>
+                <span class="pr-3 font-mono text-[11px] font-medium text-ink-300" :class="AT_USAGE">{{ run.cost_label }}</span>
 
                 <span
                     class="justify-self-end rounded-[5px] border px-2 py-1 font-mono text-[9.5px] font-medium tracking-[0.08em]"

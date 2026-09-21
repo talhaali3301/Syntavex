@@ -82,7 +82,11 @@ class DashboardController extends Controller
         $workflowIds = $workflows->pluck('id')->all();
 
         $range = $this->range($request);
-        $anchor = $this->anchorDate($workflowIds);
+
+        // Newest run in the workspace: the point every window is measured back
+        // from, and the fleet pulse's only source of truth.
+        $latestRun = WorkflowRun::query()->whereIn('workflow_id', $workflowIds)->max('created_at');
+        $anchor = $latestRun === null ? now() : Carbon::parse($latestRun);
         $since = $anchor->copy()->subDays($range['days']);
 
         /** @var Collection<int, WorkflowRun> $runs */
@@ -114,6 +118,14 @@ class DashboardController extends Controller
                 'days' => $range['days'],
                 'anchor_label' => $anchor->format('M j · H:i'),
                 'options' => $this->rangeOptions(),
+            ],
+            // Same two states the Cover shows, derived the same way, so the
+            // indicator cannot disagree between the two screens.
+            'pulse' => [
+                'live' => $latestRun !== null,
+                'latest_run_label' => $latestRun === null
+                    ? 'No runs recorded'
+                    : Carbon::parse($latestRun)->format('M j · H:i'),
             ],
             'kpis' => $this->kpis($runs, $range),
             'fleetTrust' => $this->fleetTrust($runs),
@@ -154,21 +166,6 @@ class DashboardController extends Controller
         }
 
         return $options;
-    }
-
-    /**
-     * Newest run in the workspace — the point every window is measured back
-     * from. Falls back to now() only when the workspace has no runs at all.
-     *
-     * @param  array<int, int>  $workflowIds
-     */
-    private function anchorDate(array $workflowIds): Carbon
-    {
-        $latest = WorkflowRun::query()
-            ->whereIn('workflow_id', $workflowIds)
-            ->max('created_at');
-
-        return $latest === null ? now() : Carbon::parse($latest);
     }
 
     /**

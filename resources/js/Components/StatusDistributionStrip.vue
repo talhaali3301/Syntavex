@@ -31,10 +31,7 @@ const DOT: Record<StatusTone, string> = {
         />
 
         <div class="relative flex items-center gap-3">
-            <h2
-                id="status-distribution-heading"
-                class="font-mono text-[10.5px] font-semibold tracking-[0.14em] text-glow-teal"
-            >
+            <h2 id="status-distribution-heading" class="panel-eyebrow text-glow-teal">
                 STATUS DISTRIBUTION
             </h2>
             <p class="font-mono text-[10.5px] text-ink-600">

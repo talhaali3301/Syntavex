@@ -206,9 +206,15 @@ export interface GovernanceLedgerData {
     audit_export: GovernanceLedgerEntry;
 }
 
+export interface FleetPulse {
+    live: boolean;
+    latest_run_label: string;
+}
+
 export interface CommandCentreProps {
     workspace: Workspace;
     range: DashboardRange;
+    pulse: FleetPulse;
     kpis: DashboardKpis;
     fleetTrust: FleetTrust;
     humanAttention: ApprovalRequestSummary[];
@@ -665,10 +671,8 @@ export interface CoverSignal {
     accent: SignalAccent;
 }
 
-export interface CoverPulse {
-    live: boolean;
+export interface CoverPulse extends FleetPulse {
     latest_run_key: string | null;
-    latest_run_label: string;
     tokens_display: string;
     spend_display: string;
     autonomy_display: string;

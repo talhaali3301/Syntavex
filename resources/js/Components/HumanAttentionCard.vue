@@ -68,9 +68,6 @@ const edgeClass = computed(() => EDGE[props.item.tone] ?? EDGE.info);
         </dl>
 
         <div class="mt-3 flex items-center gap-2">
-            <!-- Opens the run behind the approval; the Review Queue desk that
-                 resolves it in place is not built yet, so Escalate is marked
-                 unavailable rather than left as a button that does nothing. -->
             <Link
                 v-if="item.run_id !== null"
                 :href="`/runs/${item.run_id}`"
@@ -79,14 +76,12 @@ const edgeClass = computed(() => EDGE[props.item.tone] ?? EDGE.info);
             >
                 Review
             </Link>
-            <button
-                type="button"
-                disabled
-                title="Escalation routing arrives with the Review Queue"
-                class="cursor-not-allowed rounded-lg border border-white/[0.12] px-3 py-1.5 text-xs font-semibold text-ink-700"
+            <Link
+                href="/reviews"
+                class="rounded-lg border border-[rgba(160,205,245,0.14)] px-3 py-1.5 text-xs font-semibold text-ink-400 transition duration-200 hover:border-accent-cyan/40 hover:text-glow-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
             >
-                Escalate
-            </button>
+                Decide
+            </Link>
         </div>
     </article>
 </template>

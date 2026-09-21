@@ -23,10 +23,7 @@ const BAR: Record<BarTone, string> = {
         class="glass-panel px-[18px] py-4"
         aria-labelledby="run-volume-heading"
     >
-        <h2
-            id="run-volume-heading"
-            class="font-mono text-[10.5px] font-semibold tracking-[0.14em] text-ink-600"
-        >
+        <h2 id="run-volume-heading" class="panel-eyebrow">
             RUN VOLUME · {{ volume.window_days }}D
         </h2>
 
@@ -34,7 +31,7 @@ const BAR: Record<BarTone, string> = {
             <li
                 v-for="bar in volume.bars"
                 :key="bar.day"
-                class="flex-1 rounded-[2px]"
+                class="min-h-[2px] flex-1 rounded-[2px]"
                 :class="[
                     BAR[bar.tone],
                     // The newest day always reads as 'now', whatever its status colour.

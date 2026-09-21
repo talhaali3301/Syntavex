@@ -348,6 +348,28 @@ class CommandCentreTest extends TestCase
         $this->assertSame('review', $flagship['tone']);
     }
 
+    public function test_the_fleet_pulse_reads_the_newest_run_and_goes_idle_without_one(): void
+    {
+        $newest = WorkflowRun::query()->max('created_at');
+
+        $this->actingAs($this->user)->get('/dashboard')->assertInertia(
+            fn (AssertableInertia $page) => $page
+                ->where('pulse.live', true)
+                ->where('pulse.latest_run_label', Carbon::parse($newest)->format('M j · H:i'))
+        );
+
+        AuditEvent::query()->delete();
+        ApprovalRequest::query()->delete();
+        RunStep::query()->delete();
+        WorkflowRun::query()->delete();
+
+        $this->actingAs($this->user)->get('/dashboard')->assertInertia(
+            fn (AssertableInertia $page) => $page
+                ->where('pulse.live', false)
+                ->where('pulse.latest_run_label', 'No runs recorded')
+        );
+    }
+
     public function test_the_rail_badge_count_tracks_the_pending_approvals(): void
     {
         $response = $this->actingAs($this->user)->get('/dashboard');

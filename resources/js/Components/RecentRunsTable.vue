@@ -65,15 +65,14 @@ const open = (id: number): void => {
 
             <div
                 class="flex items-center gap-1 rounded-lg border border-[rgba(160,205,245,0.12)] bg-white/[0.03] p-1"
-                role="tablist"
+                role="group"
                 aria-label="Filter runs by status"
             >
                 <button
                     v-for="filter in FILTERS"
                     :key="filter.key"
                     type="button"
-                    role="tab"
-                    :aria-selected="active === filter.key"
+                    :aria-pressed="active === filter.key"
                     class="rounded-md px-3 py-1 text-xs font-medium transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
                     :class="
                         active === filter.key

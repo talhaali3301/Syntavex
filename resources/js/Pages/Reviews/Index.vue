@@ -32,6 +32,10 @@ const visible = computed(() =>
 
 const decided = computed(() => props.stats.approved + props.stats.rejected);
 
+/** A desk where nobody has decided anything yet has a max of 0. */
+const loadWidth = (decisions: number): string =>
+    props.reviewers.max > 0 ? `${(decisions / props.reviewers.max) * 100}%` : '0%';
+
 const pulse = computed(() => {
     const days = props.stats.decisions;
     const peak = Math.max(1, ...days.map((day) => day.approved + day.rejected));
@@ -273,7 +277,7 @@ const pulse = computed(() => {
                                 <div class="h-[5px] overflow-hidden rounded bg-[rgba(150,195,235,0.12)]">
                                     <div
                                         class="h-full rounded bg-[linear-gradient(90deg,#2DE2E6,#8B7CFF)]"
-                                        :style="{ width: `${(row.decisions / reviewers.max) * 100}%` }"
+                                        :style="{ width: loadWidth(row.decisions) }"
                                     />
                                 </div>
                             </li>

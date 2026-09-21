@@ -247,7 +247,7 @@ const breadcrumb = computed(() =>
                     </section>
 
                     <p
-                        class="flex cursor-not-allowed items-center gap-[9px] rounded-[14px] border border-accent-violet/[0.32] bg-[linear-gradient(150deg,rgba(139,124,255,0.14),rgba(16,26,44,0.6))] px-3.5 py-3 shadow-[0_0_26px_rgba(139,124,255,0.12)]"
+                        class="flex items-center gap-[9px] rounded-[14px] border border-accent-violet/[0.32] bg-[linear-gradient(150deg,rgba(139,124,255,0.14),rgba(16,26,44,0.6))] px-3.5 py-3 shadow-[0_0_26px_rgba(139,124,255,0.12)]"
                         title="Audit ledger — not built yet"
                     >
                         <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="#B5ABFC" stroke-width="1.8" aria-hidden="true">

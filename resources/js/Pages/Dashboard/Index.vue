@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DecisionGraph from '@/Components/DecisionGraph.vue';
+import FleetPulsePill from '@/Components/FleetPulsePill.vue';
 import FleetTrustGauge from '@/Components/FleetTrustGauge.vue';
 import GovernanceLedger from '@/Components/GovernanceLedger.vue';
 import HumanAttentionCard from '@/Components/HumanAttentionCard.vue';
@@ -102,21 +103,13 @@ const pulseStats = computed(() => [
                             id="fleet-search"
                             v-model="search"
                             type="search"
-                            placeholder="Search runs, workflows, agents…"
+                            placeholder="Search runs…"
                             class="field-input py-2 pl-9 pr-3"
                             @keydown.enter.prevent="submitSearch"
                         />
                     </div>
 
-                    <span
-                        class="flex shrink-0 items-center gap-2 rounded-full border border-accent-cyan/35 bg-accent-cyan/10 px-3 py-1.5 font-mono text-[10.5px] font-semibold tracking-[0.08em] text-accent-cyan"
-                    >
-                        <span
-                            class="pulse-breathe h-1.5 w-1.5 rounded-full bg-accent-cyan shadow-[0_0_10px_2px_rgba(45,226,230,0.7)]"
-                            aria-hidden="true"
-                        />
-                        FLEET LIVE
-                    </span>
+                    <FleetPulsePill :pulse="pulse" />
 
                     <div class="relative shrink-0">
                         <label for="range-select" class="sr-only">
