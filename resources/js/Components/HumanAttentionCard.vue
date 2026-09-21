@@ -27,7 +27,7 @@ const edgeClass = computed(() => EDGE[props.item.tone] ?? EDGE.info);
 
 <template>
     <article
-        class="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-3.5 transition duration-200 hover:border-white/20 hover:bg-white/[0.05]"
+        class="relative overflow-hidden rounded-xl border border-[rgba(160,205,245,0.12)] bg-white/[0.03] p-3.5 transition duration-200 hover:border-[rgba(160,205,245,0.28)] hover:bg-white/[0.05]"
     >
         <span class="absolute inset-y-0 left-0 w-0.5" :class="edgeClass" aria-hidden="true" />
 
@@ -38,14 +38,14 @@ const edgeClass = computed(() => EDGE[props.item.tone] ?? EDGE.info);
             >
                 {{ item.risk_label }}
             </span>
-            <span class="font-mono text-[0.7rem] text-white/45">#{{ item.run_key }}</span>
+            <span class="font-mono text-[0.7rem] text-ink-600">#{{ item.run_key }}</span>
         </div>
 
-        <p class="mt-2 text-xs leading-relaxed text-white/75">
+        <p class="mt-2 text-xs leading-relaxed text-ink-300">
             {{ item.summary }}
         </p>
 
-        <dl class="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.68rem] text-white/40">
+        <dl class="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.68rem] text-ink-600">
             <div class="flex items-center gap-1">
                 <dt class="sr-only">Workflow</dt>
                 <dd>{{ item.workflow }}</dd>
@@ -53,12 +53,12 @@ const edgeClass = computed(() => EDGE[props.item.tone] ?? EDGE.info);
             <span aria-hidden="true">·</span>
             <div class="flex items-center gap-1">
                 <dt class="sr-only">Blocked step</dt>
-                <dd class="font-mono text-white/55">{{ item.step_name }}</dd>
+                <dd class="font-mono text-ink-500">{{ item.step_name }}</dd>
             </div>
             <span aria-hidden="true">·</span>
             <div class="flex items-center gap-1">
                 <dt class="sr-only">Run cost</dt>
-                <dd class="font-mono text-white/55">{{ item.cost_label }}</dd>
+                <dd class="font-mono text-ink-500">{{ item.cost_label }}</dd>
             </div>
             <span aria-hidden="true">·</span>
             <div class="flex items-center gap-1">
@@ -83,7 +83,7 @@ const edgeClass = computed(() => EDGE[props.item.tone] ?? EDGE.info);
                 type="button"
                 disabled
                 title="Escalation routing arrives with the Review Queue"
-                class="cursor-not-allowed rounded-lg border border-white/[0.12] px-3 py-1.5 text-xs font-semibold text-white/35"
+                class="cursor-not-allowed rounded-lg border border-white/[0.12] px-3 py-1.5 text-xs font-semibold text-ink-700"
             >
                 Escalate
             </button>

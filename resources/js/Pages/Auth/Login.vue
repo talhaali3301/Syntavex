@@ -100,7 +100,7 @@ const submit = () => {
             </button>
         </form>
 
-        <p class="mt-6 border-t border-white/[0.07] pt-5 text-center text-xs text-ink-700">
+        <p class="mt-6 border-t border-[rgba(160,205,245,0.10)] pt-5 text-center text-xs text-ink-700">
             No account yet?
             <Link
                 :href="route('register')"

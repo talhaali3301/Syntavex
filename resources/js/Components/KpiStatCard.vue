@@ -34,7 +34,7 @@ const RULE: Record<Accent, string> = {
 </script>
 
 <template>
-    <article class="glass-panel group p-5 transition duration-300 hover:border-white/20">
+    <article class="glass-panel group p-5 transition duration-300 hover:border-[rgba(160,205,245,0.28)]">
         <div
             class="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full blur-3xl transition duration-500 group-hover:opacity-80"
             :class="GLOW[accent ?? 'cyan']"
@@ -51,11 +51,11 @@ const RULE: Record<Accent, string> = {
             <h3 class="panel-eyebrow">{{ label }}</h3>
         </div>
 
-        <p class="relative mt-4 font-display text-3xl font-semibold tracking-tight text-white">
+        <p class="relative mt-4 font-display text-3xl font-semibold tracking-tight text-ink-100">
             {{ value }}
         </p>
 
-        <p v-if="caption" class="relative mt-1.5 text-xs text-white/45">
+        <p v-if="caption" class="relative mt-1.5 text-xs text-ink-600">
             {{ caption }}
         </p>
     </article>

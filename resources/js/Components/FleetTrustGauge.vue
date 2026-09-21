@@ -38,7 +38,7 @@ const BAND_CLASSES: Record<string, string> = {
     steady: 'border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan',
     watch: 'border-status-review/40 bg-status-review/10 text-status-review',
     critical: 'border-status-critical/40 bg-status-critical/10 text-status-critical',
-    unknown: 'border-white/15 bg-white/5 text-white/50',
+    unknown: 'border-white/15 bg-white/5 text-ink-500',
 };
 
 const bandClass = computed(
@@ -115,7 +115,7 @@ const bandClass = computed(
                     x="80"
                     y="78"
                     text-anchor="middle"
-                    class="fill-white font-display text-[2.1rem] font-semibold"
+                    class="fill-ink-100 font-display text-[2.1rem] font-semibold"
                 >
                     {{ clamped }}
                 </text>
@@ -123,24 +123,24 @@ const bandClass = computed(
                     x="80"
                     y="98"
                     text-anchor="middle"
-                    class="fill-white/40 font-sans text-[0.6rem] uppercase tracking-[0.2em]"
+                    class="fill-ink-600 font-sans text-[0.6rem] uppercase tracking-[0.2em]"
                 >
                     / 100
                 </text>
             </svg>
         </div>
 
-        <dl v-if="components.length" class="relative mt-4 space-y-2 border-t border-white/10 pt-3">
+        <dl v-if="components.length" class="relative mt-4 space-y-2 border-t border-[rgba(160,205,245,0.12)] pt-3">
             <div
                 v-for="item in components"
                 :key="item.label"
                 class="flex items-baseline justify-between gap-2"
             >
-                <dt class="text-xs text-white/50">
+                <dt class="text-xs text-ink-500">
                     {{ item.label }}
-                    <span class="font-mono text-[0.6rem] text-white/25">{{ item.weight }}</span>
+                    <span class="font-mono text-[0.6rem] text-ink-900">{{ item.weight }}</span>
                 </dt>
-                <dd class="font-mono text-xs text-white/80">{{ item.display }}</dd>
+                <dd class="font-mono text-xs text-ink-200">{{ item.display }}</dd>
             </div>
         </dl>
     </section>

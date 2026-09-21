@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DecisionRecordBar from '@/Components/DecisionRecordBar.vue';
 import ExecutionTraceMap from '@/Components/ExecutionTraceMap.vue';
+import PageHeader from '@/Components/PageHeader.vue';
 import PolicyRiskPanel from '@/Components/PolicyRiskPanel.vue';
 import ReasoningTrace from '@/Components/ReasoningTrace.vue';
 import ToolCallCard from '@/Components/ToolCallCard.vue';
@@ -56,67 +57,52 @@ const breadcrumb = computed(() =>
 
     <AppLayout>
         <div class="flex min-h-screen flex-col">
-            <header
-                class="relative overflow-hidden border-b border-status-review/[0.22] bg-[linear-gradient(180deg,rgba(18,32,54,0.86),rgba(9,18,32,0.34))] px-8 pb-4 pt-4 shadow-[0_18px_44px_rgba(2,8,18,0.5),inset_0_-1px_0_rgba(248,198,93,0.10)] backdrop-blur-[20px]"
-            >
-                <div
-                    class="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(180deg,rgba(160,215,245,0.05)_0px,rgba(160,215,245,0.05)_1px,transparent_1px,transparent_4px)]"
-                    aria-hidden="true"
-                />
-                <div
-                    class="pointer-events-none absolute -top-[140px] left-[280px] h-[300px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(248,198,93,0.16),rgba(248,198,93,0)_70%)]"
-                    aria-hidden="true"
-                />
+            <PageHeader tone="review">
+                <template #above>
+                    <nav class="relative flex flex-wrap items-center gap-3.5" aria-label="Breadcrumb">
+                        <Link
+                            href="/runs"
+                            class="flex items-center gap-[7px] rounded-lg border border-[rgba(160,205,245,0.16)] px-[11px] py-1.5 font-mono text-[11px] font-medium text-ink-500 transition duration-200 hover:border-accent-cyan/45 hover:text-glow-cyan hover:shadow-[0_0_18px_rgba(45,226,230,0.16)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
+                        >
+                            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="m14 6-6 6 6 6" />
+                            </svg>
+                            Runs Explorer
+                        </Link>
+                        <p class="page-meta">
+                            workspace / {{ breadcrumb }} / runs /
+                            <span class="text-glow-blue">{{ run.run_key }}</span>
+                        </p>
+                    </nav>
+                </template>
 
-                <nav class="relative flex flex-wrap items-center gap-3.5" aria-label="Breadcrumb">
-                    <Link
-                        href="/runs"
-                        class="flex items-center gap-[7px] rounded-lg border border-[rgba(160,205,245,0.16)] px-[11px] py-1.5 font-mono text-[11px] font-medium text-ink-500 transition duration-200 hover:border-accent-cyan/45 hover:text-glow-cyan hover:shadow-[0_0_18px_rgba(45,226,230,0.16)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
+                <template #title>
+                    Run <span class="font-mono text-glow-blue">#{{ run.run_key }}</span>
+                </template>
+
+                <template #badges>
+                    <span
+                        class="flex items-center gap-[7px] rounded-full border px-[11px] py-[5px] font-mono text-[10px] font-semibold tracking-[0.1em]"
+                        :class="STATUS_PILL[run.tone]"
                     >
-                        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path d="m14 6-6 6 6 6" />
-                        </svg>
-                        Runs Explorer
-                    </Link>
-                    <p class="font-mono text-[11.5px] text-ink-700">
-                        workspace / {{ breadcrumb }} / runs /
-                        <span class="text-glow-blue">{{ run.run_key }}</span>
-                    </p>
-                </nav>
+                        <span class="h-[7px] w-[7px] rounded-full" :class="STATUS_DOT[run.tone]" aria-hidden="true" />
+                        {{ run.status_label }}
+                    </span>
+                    <span
+                        v-if="run.policy.risk"
+                        class="rounded-full border border-status-critical/[0.42] bg-status-critical/[0.14] px-[11px] py-[5px] font-mono text-[10px] font-semibold tracking-[0.1em] text-[#FFC3C9]"
+                    >
+                        {{ run.policy.risk.level_label }} {{ run.policy.risk.score_label }}
+                    </span>
+                </template>
 
-                <div class="relative mt-3.5 flex flex-wrap items-end gap-5">
-                    <div class="flex min-w-0 flex-col gap-[5px]">
-                        <div class="flex flex-wrap items-center gap-3">
-                            <h1 class="font-display text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#F2FBFF]">
-                                Run
-                                <span class="font-mono text-[23px] text-glow-blue">#{{ run.run_key }}</span>
-                            </h1>
-                            <span
-                                class="flex items-center gap-[7px] rounded-full border px-[11px] py-[5px] font-mono text-[10px] font-semibold tracking-[0.1em]"
-                                :class="STATUS_PILL[run.tone]"
-                            >
-                                <span class="h-[7px] w-[7px] rounded-full" :class="STATUS_DOT[run.tone]" aria-hidden="true" />
-                                {{ run.status_label }}
-                            </span>
-                            <span
-                                v-if="run.policy.risk"
-                                class="rounded-full border border-status-critical/[0.42] bg-status-critical/[0.14] px-[11px] py-[5px] font-mono text-[10px] font-semibold tracking-[0.1em] text-[#FFC3C9]"
-                            >
-                                {{ run.policy.risk.level_label }} {{ run.policy.risk.score_label }}
-                            </span>
-                        </div>
-                        <p class="text-[12.5px] text-ink-400">
-                            {{ run.workflow.name }} ·
-                            <span class="font-mono text-glow-violet">{{ run.agent }}</span> ·
-                            {{ run.objective }}
-                        </p>
-                        <p v-if="run.error_message" class="font-mono text-[11.5px] text-glow-red">
-                            {{ run.error_message }}
-                        </p>
-                    </div>
+                <template #meta>
+                    {{ run.workflow.name }} ·
+                    <span class="text-glow-violet">{{ run.agent }}</span> ·
+                    {{ run.objective }}
+                </template>
 
-                    <div class="flex-1" />
-
+                <template #actions>
                     <dl
                         class="flex flex-wrap gap-px overflow-hidden rounded-xl border border-[rgba(160,205,245,0.12)] bg-[rgba(160,205,245,0.10)]"
                     >
@@ -125,9 +111,7 @@ const breadcrumb = computed(() =>
                             :key="stat.label"
                             class="flex min-w-[106px] flex-col gap-[3px] bg-[rgba(10,20,35,0.85)] px-[18px] py-2.5"
                         >
-                            <dt class="font-mono text-[9.5px] tracking-[0.1em] text-ink-800">
-                                {{ stat.label }}
-                            </dt>
+                            <dt class="panel-eyebrow">{{ stat.label }}</dt>
                             <dd
                                 class="font-mono text-[13px] font-medium"
                                 :class="stat.tone === 'accent' ? 'text-glow-cyan' : 'text-ink-200'"
@@ -139,8 +123,14 @@ const breadcrumb = computed(() =>
                             </dd>
                         </div>
                     </dl>
-                </div>
-            </header>
+                </template>
+
+                <template v-if="run.error_message" #below>
+                    <p class="relative font-mono text-[11.5px] text-glow-red">
+                        {{ run.error_message }}
+                    </p>
+                </template>
+            </PageHeader>
 
             <div class="grid flex-1 grid-cols-1 gap-[18px] px-8 pb-7 pt-5 xl:grid-cols-[minmax(0,1fr)_330px]">
                 <div class="flex min-w-0 flex-col gap-[18px]">
@@ -155,7 +145,7 @@ const breadcrumb = computed(() =>
 
                         <div class="flex min-w-0 flex-col gap-3">
                             <header class="flex items-center gap-2.5 px-0.5">
-                                <h2 class="font-display text-[12.5px] font-semibold text-[#E3EFFA]">
+                                <h2 class="panel-heading">
                                     Tool Calls
                                 </h2>
                                 <p class="font-mono text-[10.5px] text-ink-700">
@@ -188,12 +178,12 @@ const breadcrumb = computed(() =>
                     <PolicyRiskPanel :policy="run.policy" />
 
                     <section
-                        class="rounded-2xl border border-[rgba(160,205,245,0.11)] bg-[rgba(10,20,35,0.7)] px-4 py-3.5 shadow-[0_16px_38px_rgba(2,8,18,0.45)] backdrop-blur-[18px]"
+                        class="glass-panel px-4 py-3.5"
                         aria-labelledby="related-runs-heading"
                     >
                         <h2
                             id="related-runs-heading"
-                            class="font-mono text-[10px] font-semibold tracking-[0.14em] text-ink-600"
+                            class="panel-eyebrow"
                         >
                             RELATED RUNS
                         </h2>
@@ -226,12 +216,12 @@ const breadcrumb = computed(() =>
                     </section>
 
                     <section
-                        class="rounded-2xl border border-[rgba(160,205,245,0.11)] bg-[rgba(10,20,35,0.7)] px-4 py-3.5 shadow-[0_16px_38px_rgba(2,8,18,0.45)] backdrop-blur-[18px]"
+                        class="glass-panel px-4 py-3.5"
                         aria-labelledby="metadata-heading"
                     >
                         <h2
                             id="metadata-heading"
-                            class="font-mono text-[10px] font-semibold tracking-[0.14em] text-ink-600"
+                            class="panel-eyebrow"
                         >
                             METADATA
                         </h2>

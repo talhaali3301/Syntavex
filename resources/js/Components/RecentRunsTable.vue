@@ -58,13 +58,13 @@ const open = (id: number): void => {
         <header class="relative flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h2 id="recent-runs-heading" class="panel-heading">Recent Runs</h2>
-                <p class="mt-0.5 text-xs text-white/40">
+                <p class="panel-note mt-0.5">
                     Latest {{ runs.length }} execution{{ runs.length === 1 ? '' : 's' }} across the fleet
                 </p>
             </div>
 
             <div
-                class="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] p-1"
+                class="flex items-center gap-1 rounded-lg border border-[rgba(160,205,245,0.12)] bg-white/[0.03] p-1"
                 role="tablist"
                 aria-label="Filter runs by status"
             >
@@ -78,7 +78,7 @@ const open = (id: number): void => {
                     :class="
                         active === filter.key
                             ? 'bg-accent-cyan/15 text-accent-cyan shadow-[inset_0_0_0_1px_rgba(45,226,230,0.3)]'
-                            : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                            : 'text-ink-500 hover:bg-white/5 hover:text-ink-200'
                     "
                     @click="active = filter.key"
                 >
@@ -93,7 +93,7 @@ const open = (id: number): void => {
         <div class="relative mt-4 overflow-x-auto">
             <table class="w-full min-w-[46rem] border-collapse text-left">
                 <thead>
-                    <tr class="border-b border-white/10">
+                    <tr class="border-b border-[rgba(160,205,245,0.12)]">
                         <th scope="col" class="panel-eyebrow py-2 pr-4 font-semibold">Run</th>
                         <th scope="col" class="panel-eyebrow py-2 pr-4 font-semibold">Workflow</th>
                         <th scope="col" class="panel-eyebrow py-2 pr-4 font-semibold">Agent · Step</th>
@@ -108,32 +108,32 @@ const open = (id: number): void => {
                     <tr
                         v-for="run in visibleRuns"
                         :key="run.id"
-                        class="cursor-pointer border-b border-white/[0.06] transition duration-150 last:border-0 hover:bg-white/[0.035]"
+                        class="cursor-pointer border-b border-[rgba(160,205,245,0.06)] transition duration-150 last:border-0 hover:bg-white/[0.035]"
                         @click="open(run.id)"
                     >
                         <td class="py-3 pr-4">
                             <Link
                                 :href="`/runs/${run.id}`"
-                                class="rounded font-mono text-sm text-white transition duration-150 hover:text-accent-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
+                                class="rounded font-mono text-sm text-ink-100 transition duration-150 hover:text-accent-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
                                 :aria-label="`Open run ${run.run_key} in the Run Inspector`"
                                 @click.stop
                             >
                                 #{{ run.run_key }}
                             </Link>
                         </td>
-                        <td class="py-3 pr-4 text-sm text-white/75">{{ run.workflow }}</td>
+                        <td class="py-3 pr-4 text-sm text-ink-300">{{ run.workflow }}</td>
                         <td class="py-3 pr-4">
                             <span class="font-mono text-xs text-accent-cyan/85">{{ run.agent }}</span>
-                            <span class="text-xs text-white/25"> · </span>
-                            <span class="text-xs text-white/55">{{ run.step }}</span>
+                            <span class="text-xs text-ink-900"> · </span>
+                            <span class="text-xs text-ink-500">{{ run.step }}</span>
                         </td>
-                        <td class="py-3 pr-4 text-right font-mono text-xs text-white/70">
+                        <td class="py-3 pr-4 text-right font-mono text-xs text-ink-300">
                             {{ run.latency_label }}
                         </td>
-                        <td class="py-3 pr-4 text-right font-mono text-xs text-white/70">
+                        <td class="py-3 pr-4 text-right font-mono text-xs text-ink-300">
                             {{ run.tokens_label }}
                         </td>
-                        <td class="py-3 pr-4 text-right font-mono text-xs text-white/70">
+                        <td class="py-3 pr-4 text-right font-mono text-xs text-ink-300">
                             {{ run.cost_label }}
                         </td>
                         <td class="py-3 pr-4">
@@ -149,13 +149,13 @@ const open = (id: number): void => {
                                 {{ run.status_label }}
                             </span>
                         </td>
-                        <td class="py-3 text-right font-mono text-xs text-white/45">
+                        <td class="py-3 text-right font-mono text-xs text-ink-600">
                             {{ run.created_at_label }}
                         </td>
                     </tr>
 
                     <tr v-if="visibleRuns.length === 0">
-                        <td colspan="8" class="py-8 text-center text-sm text-white/40">
+                        <td colspan="8" class="py-8 text-center text-sm text-ink-600">
                             No runs match this filter.
                         </td>
                     </tr>

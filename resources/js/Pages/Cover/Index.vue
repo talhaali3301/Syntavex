@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import KpiStatCard from '@/Components/KpiStatCard.vue';
 import OrbitalConstellation from '@/Components/OrbitalConstellation.vue';
+import PageHeader from '@/Components/PageHeader.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import type { CoverProps } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
@@ -34,24 +35,16 @@ const signature = computed(() => [
 
     <AppLayout>
         <div class="flex min-h-screen flex-col">
-            <header
-                class="relative flex min-h-[74px] flex-wrap items-center gap-x-4 gap-y-3 border-b border-[rgba(160,205,245,0.09)] bg-gradient-to-b from-[rgba(14,26,44,0.82)] to-[rgba(9,18,32,0.42)] px-8 py-[14px] backdrop-blur-lg"
-            >
-                <div class="flex min-w-0 flex-col gap-0.5">
-                    <div class="flex items-center gap-2.5">
-                        <h1 class="font-display text-[17px] font-semibold -tracking-[0.01em] text-ink-100">
-                            {{ workspaceLabel }}
-                        </h1>
-                        <span
-                            class="rounded border border-accent-violet/40 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-accent-violet"
-                        >
-                            COVER
-                        </span>
-                    </div>
-                    <p class="truncate font-mono text-[11.5px] text-ink-700">{{ crumb }}</p>
-                </div>
+            <PageHeader tone="violet" :title="workspaceLabel" :meta="crumb">
+                <template #badges>
+                    <span
+                        class="rounded border border-accent-violet/40 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-accent-violet"
+                    >
+                        COVER
+                    </span>
+                </template>
 
-                <div class="ml-auto flex flex-wrap items-center gap-3">
+                <template #actions>
                     <span
                         v-if="pulse.live"
                         class="flex shrink-0 items-center gap-2 rounded-full border border-accent-cyan/35 bg-accent-cyan/10 px-3 py-1.5 font-mono text-[10.5px] font-semibold tracking-[0.08em] text-accent-cyan"
@@ -79,8 +72,8 @@ const signature = computed(() => [
                             <path d="M4 12h15M13.5 6.5 19.5 12l-6 5.5" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </Link>
-                </div>
-            </header>
+                </template>
+            </PageHeader>
 
             <div class="flex flex-1 flex-col gap-[18px] px-8 pb-8 pt-[22px]">
                 <div class="grid grid-cols-12 gap-[18px]">
@@ -134,7 +127,7 @@ const signature = computed(() => [
                         </div>
 
                         <dl
-                            class="relative grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/[0.07] pt-6 xl:grid-cols-4"
+                            class="relative grid grid-cols-2 gap-x-6 gap-y-4 border-t border-[rgba(160,205,245,0.10)] pt-6 xl:grid-cols-4"
                         >
                             <div v-for="item in signature" :key="item.label" class="min-w-0">
                                 <dt class="panel-eyebrow">{{ item.label }}</dt>
@@ -157,13 +150,13 @@ const signature = computed(() => [
                         <div class="relative flex items-start justify-between gap-3">
                             <div>
                                 <h2 id="cover-graph-heading" class="panel-heading">Decision Graph</h2>
-                                <p class="mt-0.5 text-xs text-ink-700">
+                                <p class="panel-note mt-0.5">
                                     {{ workspace?.active_workflow_count ?? 0 }} of
                                     {{ workspace?.workflow_count ?? 0 }} workflows live
                                 </p>
                             </div>
                             <span
-                                class="shrink-0 rounded-full border border-white/[0.12] bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-600"
+                                class="shrink-0 rounded-full border border-[rgba(160,205,245,0.14)] bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-600"
                             >
                                 Orbit
                             </span>

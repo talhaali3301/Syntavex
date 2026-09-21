@@ -36,7 +36,7 @@ const focusStep = async (node: TraceNode): Promise<void> => {
 
                 <div class="flex min-w-0 flex-col gap-3">
                     <header class="flex items-center gap-2.5 px-0.5">
-                        <h3 class="font-display text-[12.5px] font-semibold text-[#E3EFFA]">
+                        <h3 class="panel-heading">
                             Tool Calls
                         </h3>
                         <p class="font-mono text-[10.5px] text-ink-700">

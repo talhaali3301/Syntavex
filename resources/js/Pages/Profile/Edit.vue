@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeader from '@/Components/PageHeader.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -35,44 +36,35 @@ const verified = computed(() => Boolean(user.value.email_verified_at));
 
     <AppLayout>
         <div class="flex min-h-screen flex-col">
-            <header
-                class="relative flex min-h-[74px] flex-wrap items-center gap-x-4 gap-y-3 border-b border-[rgba(160,205,245,0.09)] bg-gradient-to-b from-[rgba(14,26,44,0.82)] to-[rgba(9,18,32,0.42)] px-8 py-[14px] backdrop-blur-lg"
+            <PageHeader
+                tone="violet"
+                :title="user.name"
+                :meta="`account / ${user.email}`"
             >
-                <div
-                    class="pointer-events-none absolute -top-[150px] left-[180px] h-[300px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(139,124,255,0.14),rgba(139,124,255,0)_70%)]"
-                    aria-hidden="true"
-                />
+                <template #lead>
+                    <span
+                        class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[linear-gradient(145deg,#8B7CFF,#2DE2E6)] font-display text-sm font-semibold text-[#061020] shadow-[0_0_18px_rgba(139,124,255,0.4)]"
+                        aria-hidden="true"
+                    >
+                        {{ initials }}
+                    </span>
+                </template>
 
-                <span
-                    class="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[linear-gradient(145deg,#8B7CFF,#2DE2E6)] font-display text-sm font-semibold text-[#061020] shadow-[0_0_18px_rgba(139,124,255,0.4)]"
-                    aria-hidden="true"
-                >
-                    {{ initials }}
-                </span>
-
-                <div class="relative flex min-w-0 flex-col gap-0.5">
-                    <div class="flex items-center gap-2.5">
-                        <h1 class="truncate font-display text-[17px] font-semibold -tracking-[0.01em] text-ink-100">
-                            {{ user.name }}
-                        </h1>
-                        <span
-                            v-if="verified"
-                            class="shrink-0 rounded border border-status-completed/40 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-status-completed"
-                        >
-                            VERIFIED
-                        </span>
-                        <span
-                            v-else
-                            class="shrink-0 rounded border border-status-review/40 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-status-review"
-                        >
-                            UNVERIFIED
-                        </span>
-                    </div>
-                    <p class="truncate font-mono text-[11.5px] text-ink-700">
-                        account / {{ user.email }}
-                    </p>
-                </div>
-            </header>
+                <template #badges>
+                    <span
+                        v-if="verified"
+                        class="shrink-0 rounded border border-status-completed/40 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-status-completed"
+                    >
+                        VERIFIED
+                    </span>
+                    <span
+                        v-else
+                        class="shrink-0 rounded border border-status-review/40 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-status-review"
+                    >
+                        UNVERIFIED
+                    </span>
+                </template>
+            </PageHeader>
 
             <div class="flex flex-1 flex-col gap-[18px] px-8 pb-8 pt-[22px]">
                 <div class="grid grid-cols-1 gap-[18px] xl:grid-cols-2">

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import FreezeFrameCard from '@/Components/FreezeFrameCard.vue';
+import PageHeader from '@/Components/PageHeader.vue';
 import QueueConstellation from '@/Components/QueueConstellation.vue';
 import ReviewEmptyState from '@/Components/ReviewEmptyState.vue';
 import ReviewQueueRow from '@/Components/ReviewQueueRow.vue';
@@ -57,19 +58,8 @@ const pulse = computed(() => {
 
     <AppLayout>
         <div class="flex min-h-screen flex-col">
-            <header
-                class="relative overflow-hidden border-b border-status-critical/[0.18] bg-[linear-gradient(180deg,rgba(24,30,52,0.88),rgba(9,18,32,0.34))] px-8 pb-4 pt-4 shadow-[0_18px_44px_rgba(2,8,18,0.5)] backdrop-blur-[20px]"
-            >
-                <div
-                    class="pointer-events-none absolute -top-[150px] left-[220px] h-[320px] w-[560px] rounded-full bg-[radial-gradient(circle,rgba(242,108,120,0.14),rgba(242,108,120,0)_70%)]"
-                    aria-hidden="true"
-                />
-
-                <div class="relative flex flex-wrap items-center gap-x-4 gap-y-3">
-                    <h1 class="font-display text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#F2FBFF]">
-                        Review Queue
-                    </h1>
-
+            <PageHeader tone="critical" title="Review Queue">
+                <template #badges>
                     <span
                         v-if="stats.pending"
                         class="flex items-center gap-[7px] rounded-full border border-status-critical/45 bg-status-critical/[0.13] px-[11px] py-[5px] font-mono text-[10px] font-semibold tracking-[0.1em] text-[#FFC3C9]"
@@ -87,9 +77,18 @@ const pulse = computed(() => {
                         <span class="h-[7px] w-[7px] rounded-full bg-status-completed" aria-hidden="true" />
                         QUEUE CLEAR
                     </span>
+                </template>
 
-                    <div class="flex-1" />
+                <template #meta>
+                    human-in-the-loop desk
+                    <template v-if="stats.oldest_wait_label">
+                        · oldest item waiting
+                        <span class="text-ink-400">{{ stats.oldest_wait_label }}</span>
+                    </template>
+                    · {{ stats.sla_label }}
+                </template>
 
+                <template #actions>
                     <button
                         type="button"
                         class="rounded-lg border px-[13px] py-2 font-mono text-[10.5px] font-semibold tracking-[0.06em] transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
@@ -103,22 +102,13 @@ const pulse = computed(() => {
                     >
                         FOCUS MODE
                     </button>
-                </div>
-
-                <p class="relative mt-1.5 font-mono text-[11.5px] text-ink-700">
-                    human-in-the-loop desk
-                    <template v-if="stats.oldest_wait_label">
-                        · oldest item waiting
-                        <span class="text-ink-400">{{ stats.oldest_wait_label }}</span>
-                    </template>
-                    · {{ stats.sla_label }}
-                </p>
-            </header>
+                </template>
+            </PageHeader>
 
             <div class="grid flex-1 grid-cols-1 gap-[18px] px-8 pb-8 pt-5 xl:grid-cols-[minmax(0,1fr)_310px]">
                 <div class="flex min-w-0 flex-col gap-[18px]">
                     <section
-                        class="flex flex-wrap items-center gap-x-7 gap-y-4 rounded-2xl border border-[rgba(160,205,245,0.11)] bg-[rgba(10,20,35,0.7)] px-[22px] py-4 shadow-[0_16px_38px_rgba(2,8,18,0.45)] backdrop-blur-[18px]"
+                        class="glass-panel flex flex-wrap items-center gap-x-7 gap-y-4 px-[22px] py-4"
                         aria-label="Desk throughput"
                     >
                         <div v-for="stat in [
@@ -126,17 +116,17 @@ const pulse = computed(() => {
                             { label: 'AVG WAIT', value: stats.average_wait_label },
                             { label: `INTERCEPTED ${stats.window_label}`, value: String(stats.intercepted) },
                         ]" :key="stat.label" class="flex flex-col gap-[3px]">
-                            <span class="font-mono text-[9.5px] tracking-[0.1em] text-ink-800">
+                            <span class="panel-eyebrow">
                                 {{ stat.label }}
                             </span>
-                            <span class="font-display text-[21px] font-semibold leading-none text-[#EDF6FF]">
+                            <span class="font-display text-[21px] font-semibold leading-none text-ink-100">
                                 {{ stat.value }}
                             </span>
                         </div>
 
                         <div class="min-w-[220px] flex-1">
                             <div class="flex flex-wrap items-center gap-x-3.5 gap-y-1">
-                                <span class="font-mono text-[9.5px] tracking-[0.1em] text-ink-800">
+                                <span class="panel-eyebrow">
                                     DECISIONS · {{ stats.window_label }}
                                 </span>
                                 <span class="flex items-center gap-1.5 font-mono text-[10px] text-glow-green">
@@ -224,10 +214,10 @@ const pulse = computed(() => {
                     <QueueConstellation v-if="queue.length" :constellation="constellation" />
 
                     <section
-                        class="rounded-2xl border border-[rgba(160,205,245,0.11)] bg-[rgba(10,20,35,0.7)] px-4 py-3.5 shadow-[0_16px_38px_rgba(2,8,18,0.45)] backdrop-blur-[18px]"
+                        class="glass-panel px-4 py-3.5"
                         aria-labelledby="resolved-heading"
                     >
-                        <h2 id="resolved-heading" class="font-mono text-[10px] font-semibold tracking-[0.14em] text-ink-600">
+                        <h2 id="resolved-heading" class="panel-eyebrow">
                             RECENTLY RESOLVED
                         </h2>
 
@@ -261,10 +251,10 @@ const pulse = computed(() => {
                     </section>
 
                     <section
-                        class="rounded-2xl border border-[rgba(160,205,245,0.11)] bg-[rgba(10,20,35,0.7)] px-4 py-3.5 shadow-[0_16px_38px_rgba(2,8,18,0.45)] backdrop-blur-[18px]"
+                        class="glass-panel px-4 py-3.5"
                         aria-labelledby="reviewers-heading"
                     >
-                        <h2 id="reviewers-heading" class="font-mono text-[10px] font-semibold tracking-[0.14em] text-ink-600">
+                        <h2 id="reviewers-heading" class="panel-eyebrow">
                             REVIEWER LOAD
                         </h2>
 

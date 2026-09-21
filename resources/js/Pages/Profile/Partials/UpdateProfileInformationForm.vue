@@ -18,7 +18,7 @@ const form = useForm({
     <section class="relative">
         <header>
             <h2 id="profile-information-heading" class="panel-heading">Profile Information</h2>
-            <p class="mt-1 text-xs text-ink-700">
+            <p class="panel-note mt-1">
                 Update your account's name and email address.
             </p>
         </header>

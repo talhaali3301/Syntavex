@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeader from '@/Components/PageHeader.vue';
 import RunsEmptyState from '@/Components/RunsEmptyState.vue';
 import RunsFilterBar from '@/Components/RunsFilterBar.vue';
 import RunsPagination from '@/Components/RunsPagination.vue';
@@ -124,27 +125,21 @@ const toggleRow = (id: number): void => {
     <Head title="Runs Explorer" />
 
     <AppLayout>
-        <!-- Top bar -->
-        <header
-            class="sticky top-0 z-20 flex min-h-[74px] flex-wrap items-center gap-x-4 gap-y-3 border-b border-[rgba(160,205,245,0.09)] bg-gradient-to-b from-[rgba(14,26,44,0.82)] to-[rgba(9,18,32,0.42)] px-8 py-[14px] backdrop-blur-lg"
+        <PageHeader
+            sticky
+            tone="accent"
+            title="Runs Explorer"
+            :meta="`workspace / ${workspace.slug} · ${workspace.tier.toLowerCase()} / runs`"
         >
-            <div class="flex min-w-0 flex-col gap-0.5">
-                <div class="flex items-center gap-2.5">
-                    <h1 class="font-display text-[17px] font-semibold -tracking-[0.01em] text-ink-100">
-                        Runs Explorer
-                    </h1>
-                    <span
-                        class="rounded border border-accent-cyan/35 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-accent-cyan"
-                    >
-                        DIRECTORY
-                    </span>
-                </div>
-                <p class="truncate font-mono text-[11.5px] text-ink-700">
-                    workspace / {{ workspace.slug }} · {{ workspace.tier.toLowerCase() }} / runs
-                </p>
-            </div>
+            <template #badges>
+                <span
+                    class="rounded border border-accent-cyan/35 px-1.5 py-[3px] font-mono text-[10px] font-medium tracking-[0.08em] text-accent-cyan"
+                >
+                    DIRECTORY
+                </span>
+            </template>
 
-            <div class="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3">
+            <template #actions>
                 <div
                     class="flex h-9 w-full min-w-[15rem] max-w-[26rem] flex-1 items-center gap-2.5 rounded-[9px] border border-accent-cyan/35 bg-[rgba(10,20,35,0.75)] px-3.5 shadow-[0_0_22px_rgba(45,226,230,0.10)] focus-within:border-accent-cyan/70"
                 >
@@ -181,10 +176,10 @@ const toggleRow = (id: number): void => {
                     </svg>
                     Export
                 </a>
-            </div>
-        </header>
+            </template>
+        </PageHeader>
 
-        <div class="flex flex-col gap-4 px-8 pb-7 pt-[22px]">
+        <div class="flex flex-col gap-[18px] px-8 pb-8 pt-[22px]">
             <!-- Distribution + volume -->
             <div class="grid gap-[18px] lg:grid-cols-[minmax(0,1fr)_300px]">
                 <StatusDistributionStrip :distribution="distribution" />
@@ -213,7 +208,7 @@ const toggleRow = (id: number): void => {
 
             <div
                 v-else
-                class="overflow-hidden rounded-2xl border border-[rgba(160,205,245,0.10)] bg-panel-base shadow-[0_20px_48px_rgba(2,8,18,0.55)]"
+                class="glass-panel glass-panel-solid"
             >
                 <RunsEmptyState
                     :filters="filters"

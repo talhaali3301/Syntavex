@@ -11,10 +11,10 @@ const emit = defineEmits<{ toggle: [] }>();
 
 <template>
     <article
-        class="freeze-halo relative rounded-[20px] border border-status-critical/[0.45] bg-[linear-gradient(155deg,rgba(242,108,120,0.14),rgba(14,24,42,0.82)_46%,rgba(139,124,255,0.10))] shadow-[0_28px_70px_rgba(2,8,18,0.7)] backdrop-blur-[24px]"
+        class="glass-panel freeze-halo border-status-critical/[0.45] bg-[linear-gradient(155deg,rgba(242,108,120,0.14),rgba(14,24,42,0.82)_46%,rgba(139,124,255,0.10))] shadow-[0_28px_70px_rgba(2,8,18,0.7)]"
         :aria-labelledby="`freeze-${item.id}-headline`"
     >
-        <div class="relative overflow-hidden rounded-[20px]">
+        <div class="relative overflow-hidden rounded-2xl">
             <div
                 class="pointer-events-none absolute -right-[80px] -top-[120px] h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,rgba(242,108,120,0.22),rgba(242,108,120,0)_70%)]"
                 aria-hidden="true"
@@ -47,7 +47,7 @@ const emit = defineEmits<{ toggle: [] }>();
 
                         <h3
                             :id="`freeze-${item.id}-headline`"
-                            class="mt-3 font-display text-[27px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#F6FBFF]"
+                            class="mt-3 font-display text-[27px] font-semibold leading-[1.15] tracking-[-0.02em] text-ink-100"
                         >
                             {{ item.headline }}
                         </h3>
@@ -136,7 +136,7 @@ const emit = defineEmits<{ toggle: [] }>();
                             v-if="item.impact_rows.length"
                             class="rounded-[13px] border border-[rgba(160,205,245,0.12)] bg-[rgba(5,12,22,0.78)] px-4 py-3.5"
                         >
-                            <h4 class="font-mono text-[10px] font-semibold tracking-[0.14em] text-ink-600">
+                            <h4 class="panel-eyebrow">
                                 DATA AFFECTED
                             </h4>
                             <dl class="mt-2.5 flex flex-col gap-[7px]">

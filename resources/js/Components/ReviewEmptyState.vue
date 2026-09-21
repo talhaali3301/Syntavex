@@ -16,7 +16,7 @@ const decided = computed(() => props.stats.approved + props.stats.rejected);
         />
 
         <div
-            class="relative mx-auto flex max-w-[35rem] flex-col items-center gap-3.5 rounded-[18px] border border-status-completed/25 bg-gradient-to-br from-[rgba(20,48,42,0.38)] to-[rgba(12,22,38,0.6)] px-10 py-10 text-center shadow-[0_24px_56px_rgba(2,8,18,0.6)] backdrop-blur-xl"
+            class="glass-panel mx-auto flex max-w-[35rem] flex-col items-center gap-3.5 border-status-completed/25 px-10 py-10 text-center"
         >
             <svg class="h-[62px] w-[62px]" viewBox="0 0 24 24" fill="none" stroke="rgba(85,217,139,0.65)" stroke-width="1.2" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />

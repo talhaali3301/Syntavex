@@ -20,7 +20,7 @@ const BAR: Record<BarTone, string> = {
 
 <template>
     <section
-        class="rounded-2xl border border-[rgba(160,205,245,0.10)] bg-[rgba(10,20,35,0.72)] px-[18px] py-4 shadow-[0_16px_38px_rgba(2,8,18,0.45)]"
+        class="glass-panel px-[18px] py-4"
         aria-labelledby="run-volume-heading"
     >
         <h2

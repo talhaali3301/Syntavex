@@ -15,7 +15,7 @@ const ACTION =
 
 <template>
     <section
-        class="relative overflow-hidden rounded-[18px] border border-[rgba(160,222,245,0.20)] bg-[linear-gradient(150deg,rgba(45,226,230,0.10),rgba(20,34,55,0.62)_48%,rgba(242,108,120,0.12))] px-[22px] py-[18px] shadow-[0_24px_56px_rgba(2,8,18,0.62),inset_0_1px_0_rgba(215,245,255,0.14)] backdrop-blur-[24px]"
+        class="glass-panel glass-panel-feature px-[22px] py-[18px]"
         aria-labelledby="decision-record-heading"
     >
         <div
@@ -31,7 +31,7 @@ const ACTION =
                 >
                     {{ decision.eyebrow }}
                 </h2>
-                <p class="font-display text-[21px] font-semibold leading-tight tracking-[-0.01em] text-[#F2FBFF]">
+                <p class="font-display text-[21px] font-semibold leading-tight tracking-[-0.01em] text-ink-100">
                     {{ decision.headline }}
                 </p>
                 <p class="text-xs text-ink-500">{{ decision.detail }}</p>

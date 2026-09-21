@@ -20,7 +20,7 @@ const counts = computed(() => {
 
 <template>
     <section
-        class="relative overflow-hidden rounded-[18px] border px-[18px] pb-[18px] pt-4 backdrop-blur-[24px]"
+        class="glass-panel px-[18px] pb-[18px] pt-4"
         :class="
             flagged
                 ? 'border-status-critical/30 bg-[linear-gradient(150deg,rgba(242,108,120,0.14),rgba(24,32,50,0.55)_62%,rgba(139,124,255,0.12))] shadow-[0_22px_52px_rgba(2,8,18,0.6),0_0_34px_rgba(242,108,120,0.12),inset_0_1px_0_rgba(255,215,220,0.12)]'

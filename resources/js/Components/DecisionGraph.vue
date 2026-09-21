@@ -92,7 +92,7 @@ const openRun = (node: DecisionGraphNode): void => {
         <header class="relative flex flex-wrap items-start justify-between gap-3">
             <div>
                 <h2 id="decision-graph-heading" class="panel-heading">Decision Graph</h2>
-                <p v-if="plotted" class="mt-0.5 text-xs text-white/40">
+                <p v-if="plotted" class="panel-note mt-0.5">
                     Runs clustered by workflow · distance from core encodes risk
                 </p>
             </div>
@@ -101,7 +101,7 @@ const openRun = (node: DecisionGraphNode): void => {
                 <li
                     v-for="entry in graph.legend"
                     :key="entry.status"
-                    class="flex items-center gap-1.5 text-[0.7rem] text-white/50"
+                    class="flex items-center gap-1.5 text-[0.7rem] text-ink-500"
                 >
                     <span
                         class="h-2 w-2 rounded-full"
@@ -109,7 +109,7 @@ const openRun = (node: DecisionGraphNode): void => {
                         aria-hidden="true"
                     />
                     {{ entry.label }}
-                    <span class="font-mono text-white/75">{{ entry.count }}</span>
+                    <span class="font-mono text-ink-300">{{ entry.count }}</span>
                 </li>
             </ul>
         </header>
@@ -135,10 +135,10 @@ const openRun = (node: DecisionGraphNode): void => {
                     <path d="M6.4 7.1 10 10.4M17.6 8.1 14 10.6M7.4 16.6 10.4 13.7M16.7 16.2 13.8 13.6" stroke-dasharray="2 3" />
                 </svg>
 
-                <p class="font-display text-sm font-semibold text-white">
+                <p class="panel-heading">
                     No runs in this window
                 </p>
-                <p class="max-w-[38ch] text-xs leading-relaxed text-white/40">
+                <p class="max-w-[38ch] text-xs leading-relaxed text-ink-600">
                     Clusters are plotted from the runs inside the selected observation
                     window. Widen the window to see the fleet take shape.
                 </p>
@@ -279,7 +279,7 @@ const openRun = (node: DecisionGraphNode): void => {
                             :x="cluster.core.x"
                             :y="cluster.core.y + cluster.core.r + 18"
                             text-anchor="middle"
-                            class="fill-white font-mono text-[11px]"
+                            class="fill-ink-100 font-mono text-[11px]"
                         >
                             #{{ cluster.core.run_key }}
                         </text>
@@ -334,7 +334,7 @@ const openRun = (node: DecisionGraphNode): void => {
                         :x="cluster.x"
                         :y="cluster.y - cluster.radius - 14"
                         text-anchor="middle"
-                        class="fill-white/75 font-display text-[13px] font-semibold"
+                        class="fill-ink-300 font-display text-[13px] font-semibold"
                     >
                         {{ cluster.label }}
                     </text>
@@ -343,7 +343,7 @@ const openRun = (node: DecisionGraphNode): void => {
                         :y="cluster.y - cluster.radius + 1"
                         text-anchor="middle"
                         class="font-mono text-[11px]"
-                        :class="cluster.at_risk_count > 0 ? 'fill-status-critical/80' : 'fill-white/35'"
+                        :class="cluster.at_risk_count > 0 ? 'fill-status-critical/80' : 'fill-ink-700'"
                     >
                         {{ cluster.risk_label }}
                     </text>
@@ -362,9 +362,9 @@ const openRun = (node: DecisionGraphNode): void => {
             <p class="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-status-critical">
                 {{ callout.title }}
             </p>
-            <span class="text-white/20" aria-hidden="true">·</span>
-            <p class="font-display text-sm font-semibold text-white">{{ callout.workflow }}</p>
-            <p class="text-xs text-white/55">{{ callout.detail }}</p>
+            <span class="text-ink-950" aria-hidden="true">·</span>
+            <p class="panel-heading">{{ callout.workflow }}</p>
+            <p class="text-xs text-ink-500">{{ callout.detail }}</p>
         </aside>
     </section>
 </template>

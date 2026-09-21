@@ -22,7 +22,7 @@ const DOT: Record<StatusTone, string> = {
 
 <template>
     <section
-        class="relative overflow-hidden rounded-2xl border border-[rgba(160,222,245,0.18)] bg-gradient-to-br from-accent-cyan/10 via-[rgba(28,48,76,0.40)] to-accent-violet/[0.12] px-5 pb-[15px] pt-4 shadow-[0_20px_48px_rgba(2,8,18,0.6),inset_0_1px_0_rgba(215,245,255,0.14)] backdrop-blur-2xl"
+        class="glass-panel glass-panel-feature px-5 pb-[15px] pt-4"
         aria-labelledby="status-distribution-heading"
     >
         <div

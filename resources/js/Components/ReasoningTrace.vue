@@ -16,7 +16,7 @@ const LINE: Record<LineTone, string> = {
 
 <template>
     <section
-        class="relative flex min-h-0 flex-col overflow-hidden rounded-[18px] border border-accent-cyan/20 bg-[#070F1C] shadow-[0_20px_48px_rgba(2,8,18,0.6),0_0_34px_rgba(45,226,230,0.08)]"
+        class="glass-panel flex min-h-0 flex-col border-accent-cyan/20 bg-[#070F1C] backdrop-blur-none"
         aria-labelledby="reasoning-heading"
     >
         <header

@@ -109,7 +109,7 @@ const selected = computed(() => points.value.find((point) => point.selected));
 
 <template>
     <section
-        class="relative overflow-hidden rounded-[18px] border border-[rgba(160,222,245,0.16)] bg-[linear-gradient(155deg,rgba(26,44,72,0.55),rgba(9,18,32,0.72))] px-[22px] pb-2.5 pt-4 shadow-[0_22px_52px_rgba(2,8,18,0.6),inset_0_1px_0_rgba(215,245,255,0.12)] backdrop-blur-[22px]"
+        class="glass-panel glass-panel-feature px-[22px] pb-2.5 pt-4"
         aria-labelledby="execution-trace-heading"
     >
         <div
@@ -118,7 +118,7 @@ const selected = computed(() => points.value.find((point) => point.selected));
         />
 
         <header class="relative flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h2 id="execution-trace-heading" class="font-display text-[12.5px] font-semibold text-[#E3EFFA]">
+            <h2 id="execution-trace-heading" class="panel-heading">
                 Execution Trace
             </h2>
             <p class="font-mono text-[10.5px] text-ink-700">{{ trace.summary }}</p>

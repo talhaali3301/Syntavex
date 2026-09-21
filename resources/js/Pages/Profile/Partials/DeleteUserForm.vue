@@ -55,7 +55,7 @@ const closeModal = (): void => {
 
         <Modal :show="confirmingUserDeletion" max-width="lg" @close="closeModal">
             <div class="freeze-halo relative p-6">
-                <h2 class="font-display text-base font-semibold text-[#F2FBFF]">
+                <h2 class="font-display text-[19px] font-semibold text-ink-100">
                     Delete this account?
                 </h2>
 

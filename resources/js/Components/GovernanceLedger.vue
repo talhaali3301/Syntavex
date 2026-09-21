@@ -36,17 +36,17 @@ const isReady = computed(() => props.ledger.audit_export.value === 'ready');
             </span>
         </div>
 
-        <dl class="relative mt-4 divide-y divide-white/[0.08]">
+        <dl class="relative mt-4 divide-y divide-[rgba(160,205,245,0.10)]">
             <div
                 v-for="row in rows"
                 :key="row.label"
                 class="flex items-start justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
             >
                 <div>
-                    <dt class="text-xs font-medium text-white/70">{{ row.label }}</dt>
-                    <p class="mt-0.5 text-[0.68rem] text-white/35">{{ row.caption }}</p>
+                    <dt class="text-xs font-medium text-ink-300">{{ row.label }}</dt>
+                    <p class="mt-0.5 text-[0.68rem] text-ink-700">{{ row.caption }}</p>
                 </div>
-                <dd class="shrink-0 font-display text-lg font-semibold text-white">
+                <dd class="shrink-0 font-display text-lg font-semibold text-ink-100">
                     {{ row.display }}
                 </dd>
             </div>

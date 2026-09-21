@@ -65,7 +65,7 @@ const PILL: Record<StatusTone, string> = {
 
 <template>
     <div
-        class="overflow-hidden rounded-2xl border border-[rgba(160,205,245,0.10)] bg-panel-base shadow-[0_20px_48px_rgba(2,8,18,0.55)]"
+        class="glass-panel glass-panel-solid"
     >
         <!-- Header -->
         <div

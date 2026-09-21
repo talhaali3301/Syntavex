@@ -77,7 +77,7 @@ const BEAT =
         <dl v-if="stats.length" class="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2">
             <div v-for="stat in stats" :key="stat.label" class="text-right">
                 <dt class="panel-eyebrow">{{ stat.label }}</dt>
-                <dd class="mt-0.5 font-mono text-sm text-white/85">{{ stat.value }}</dd>
+                <dd class="mt-0.5 font-mono text-sm text-ink-200">{{ stat.value }}</dd>
             </div>
         </dl>
     </section>

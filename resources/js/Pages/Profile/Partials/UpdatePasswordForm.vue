@@ -33,7 +33,7 @@ const updatePassword = (): void => {
     <section class="relative">
         <header>
             <h2 id="update-password-heading" class="panel-heading">Update Password</h2>
-            <p class="mt-1 text-xs text-ink-700">
+            <p class="panel-note mt-1">
                 Use a long, random password to keep this account secure.
             </p>
         </header>

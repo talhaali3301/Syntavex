@@ -62,7 +62,7 @@ const applyDates = (): void => {
 
 <template>
     <div
-        class="relative flex flex-wrap items-center gap-2.5 rounded-2xl border border-[rgba(160,205,245,0.13)] bg-gradient-to-br from-[rgba(40,58,86,0.42)] to-[rgba(12,22,38,0.55)] px-3.5 py-2.5 shadow-[0_14px_34px_rgba(2,8,18,0.45)] backdrop-blur-xl"
+        class="glass-panel flex flex-wrap items-center gap-2.5 px-3.5 py-2.5"
     >
         <!-- Status chips -->
         <div class="flex flex-wrap gap-1.5" role="group" aria-label="Filter by status">

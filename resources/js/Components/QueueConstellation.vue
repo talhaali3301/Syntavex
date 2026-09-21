@@ -13,12 +13,12 @@ const NODE: Record<RiskLevel, { fill: string; radius: number }> = {
 
 <template>
     <section
-        class="rounded-2xl border border-[rgba(160,205,245,0.11)] bg-[rgba(10,20,35,0.7)] px-4 py-3.5 shadow-[0_16px_38px_rgba(2,8,18,0.45)] backdrop-blur-[18px]"
+        class="glass-panel px-4 py-3.5"
         aria-labelledby="constellation-heading"
     >
         <h2
             id="constellation-heading"
-            class="font-mono text-[10px] font-semibold tracking-[0.14em] text-ink-600"
+            class="panel-eyebrow"
         >
             QUEUE CONSTELLATION
         </h2>

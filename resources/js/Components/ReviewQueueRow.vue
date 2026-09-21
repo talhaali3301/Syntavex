@@ -40,7 +40,7 @@ const band = computed(() =>
 
 <template>
     <article
-        class="relative overflow-hidden rounded-[16px] border border-[rgba(160,205,245,0.13)] bg-[linear-gradient(150deg,rgba(30,46,72,0.44),rgba(10,20,35,0.7))] shadow-[0_18px_44px_rgba(2,8,18,0.5)] backdrop-blur-[18px] transition duration-200 hover:border-[rgba(160,205,245,0.28)]"
+        class="glass-panel transition duration-200 hover:border-[rgba(160,205,245,0.28)]"
     >
         <div class="flex flex-wrap items-start gap-x-5 gap-y-4 px-[18px] py-4">
             <div class="min-w-0 flex-1">
@@ -69,7 +69,7 @@ const band = computed(() =>
                     :aria-expanded="expanded"
                     @click="emit('toggle')"
                 >
-                    <h3 class="font-display text-[16px] font-semibold leading-snug tracking-[-0.01em] text-[#EDF6FF]">
+                    <h3 class="font-display text-[16px] font-semibold leading-snug tracking-[-0.01em] text-ink-100">
                         {{ item.headline }}
                     </h3>
                 </button>
@@ -108,7 +108,7 @@ const band = computed(() =>
                         x="36"
                         y="41"
                         text-anchor="middle"
-                        class="fill-[#EDF6FF] font-display text-[18px] font-semibold"
+                        class="fill-ink-100 font-display text-[18px] font-semibold"
                     >
                         {{ item.risk.score_label }}
                     </text>

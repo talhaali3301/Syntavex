@@ -37,7 +37,7 @@ const statusLabel = computed(() =>
         />
 
         <div
-            class="relative mx-auto flex max-w-[35rem] flex-col items-center gap-3.5 rounded-[18px] border border-[rgba(160,205,245,0.14)] bg-gradient-to-br from-[rgba(40,58,86,0.38)] to-[rgba(12,22,38,0.55)] px-10 py-9 shadow-[0_24px_56px_rgba(2,8,18,0.6)] backdrop-blur-xl"
+            class="glass-panel mx-auto flex max-w-[35rem] flex-col items-center gap-3.5 px-10 py-9"
         >
             <svg
                 v-if="unfiltered"
@@ -65,7 +65,7 @@ const statusLabel = computed(() =>
                 <path d="M8.2 11h5.6" stroke="rgba(139,124,255,0.8)" />
             </svg>
 
-            <h3 class="font-display text-[17px] font-semibold text-ink-100">
+            <h3 class="font-display text-[19px] font-semibold text-ink-100">
                 {{ unfiltered ? 'No runs recorded yet' : 'No runs match these filters' }}
             </h3>
 
