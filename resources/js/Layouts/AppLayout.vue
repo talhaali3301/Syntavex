@@ -72,6 +72,9 @@ const LINKED =
  */
 const UNLINKED = 'cursor-not-allowed text-ink-900';
 
+const SIGN_OUT =
+    'cursor-pointer hover:border-status-critical/30 hover:bg-status-critical/[0.10] hover:text-status-critical';
+
 /** Mockup active tile: cyan wash, cyan hairline border and an inner cyan bloom. */
 const ACTIVE =
     'border-accent-cyan/[0.32] bg-[linear-gradient(145deg,rgba(45,226,230,0.16),rgba(45,226,230,0.04))] text-accent-cyan shadow-[inset_0_0_18px_rgba(45,226,230,0.18)]';
@@ -258,16 +261,39 @@ const classesFor = (item: NavItem): string => {
                 </svg>
             </button>
 
-            <Link
-                v-if="isAuthenticated"
-                href="/profile"
-                class="grid h-[34px] w-[34px] cursor-pointer place-items-center rounded-full bg-[linear-gradient(145deg,#8B7CFF,#2DE2E6)] font-display text-xs font-semibold text-[#061020] shadow-[0_0_18px_rgba(139,124,255,0.4)] transition duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
-                :class="onProfile ? 'ring-2 ring-accent-cyan ring-offset-2 ring-offset-navy-base' : ''"
-                :aria-current="onProfile ? 'page' : undefined"
-                :aria-label="accountName ? `Profile — ${accountName}` : 'Profile'"
-            >
-                {{ initials }}
-            </Link>
+            <template v-if="isAuthenticated">
+                <Link
+                    href="/profile"
+                    class="grid h-[34px] w-[34px] cursor-pointer place-items-center rounded-full bg-[linear-gradient(145deg,#8B7CFF,#2DE2E6)] font-display text-xs font-semibold text-[#061020] shadow-[0_0_18px_rgba(139,124,255,0.4)] transition duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
+                    :class="onProfile ? 'ring-2 ring-accent-cyan ring-offset-2 ring-offset-navy-base' : ''"
+                    :aria-current="onProfile ? 'page' : undefined"
+                    :aria-label="accountName ? `Profile — ${accountName}` : 'Profile'"
+                >
+                    {{ initials }}
+                </Link>
+
+                <Link
+                    href="/logout"
+                    method="post"
+                    as="button"
+                    type="button"
+                    :class="`${TILE} ${SIGN_OUT}`"
+                    :aria-label="accountName ? `Log out — ${accountName}` : 'Log out'"
+                    title="Log out"
+                >
+                    <svg
+                        class="h-[19px] w-[19px]"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        aria-hidden="true"
+                    >
+                        <path d="M14 7.5 18.5 12 14 16.5M18.5 12H8" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M13 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7" />
+                    </svg>
+                </Link>
+            </template>
 
             <Link
                 v-else

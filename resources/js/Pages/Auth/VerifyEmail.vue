@@ -23,14 +23,14 @@ const verificationLinkSent = computed(
     <GuestLayout>
         <Head title="Email Verification" />
 
-        <div class="mb-4 text-sm text-gray-600">
+        <div class="mb-5 text-xs leading-relaxed text-ink-600">
             Thanks for signing up! Before getting started, could you verify your
             email address by clicking on the link we just emailed to you? If you
             didn't receive the email, we will gladly send you another.
         </div>
 
         <div
-            class="mb-4 text-sm font-medium text-green-600"
+            class="mb-5 font-mono text-[11px] text-glow-green"
             v-if="verificationLinkSent"
         >
             A new verification link has been sent to the email address you
@@ -50,7 +50,7 @@ const verificationLinkSent = computed(
                     :href="route('logout')"
                     method="post"
                     as="button"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    class="rounded text-xs text-ink-700 transition duration-150 hover:text-glow-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
                     >Log Out</Link
                 >
             </div>
