@@ -27,7 +27,7 @@ const decided = computed(() => props.stats.approved + props.stats.rejected);
 
             <p class="text-[12.5px] leading-relaxed text-ink-500">
                 No runs are waiting on a human. Every policy gate that tripped in the
-                last {{ stats.window_label }} has been signed off — the desk stays
+                last {{ stats.window_label }} has been signed off. The desk stays
                 quiet until an agent hits a ceiling it cannot clear on its own.
             </p>
 

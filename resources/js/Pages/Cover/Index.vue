@@ -86,8 +86,8 @@ const signature = computed(() => [
                             </h2>
 
                             <p class="mt-5 max-w-[52ch] text-[15px] leading-relaxed text-ink-400">
-                                SyntaVex traces autonomous workflows end to end — reasoning, tool
-                                calls, policy gates — and holds irreversible actions at the
+                                SyntaVex traces autonomous workflows end to end, capturing reasoning,
+                                tool calls and policy gates. Irreversible actions are held at the
                                 boundary until a human signs them off.
                             </p>
 

@@ -145,7 +145,7 @@ class DestructiveInterceptSeeder extends Seeder
                         sprintf('Dormancy filter last_seen_at < now() - 90d matched %s rows.', number_format(self::MATCHED_ROWS)),
                         sprintf('%s rows carry last_seen_at = NULL; agent treated NULL as dormant rather than unknown.', number_format(self::NULL_ROWS)),
                         sprintf(
-                            'Scope widened to %s / %s rows — %d%% of the customers table.',
+                            'Scope widened to %s / %s rows, %d%% of the customers table.',
                             number_format(self::SCOPED_ROWS),
                             number_format(self::TABLE_ROWS),
                             round(self::SCOPED_ROWS / self::TABLE_ROWS * 100),

@@ -73,7 +73,7 @@ class ReviewQueueController extends Controller
             $run->forceFill([
                 'status' => $decision->runStatus(),
                 'error_message' => $decision === ReviewDecision::Reject
-                    ? 'Rejected in human review — '.($note ?? $approval->summary)
+                    ? 'Rejected in human review. '.($note ?? $approval->summary)
                     : null,
             ])->save();
 

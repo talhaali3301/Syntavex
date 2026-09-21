@@ -27,7 +27,7 @@ const progress = computed(
         class="h-[168px] w-full"
         fill="none"
         role="img"
-        :aria-label="`Risk score ${scoreLabel} out of 1.00 — ${bandLabel}`"
+        :aria-label="`Risk score ${scoreLabel} out of 1.00, ${bandLabel}`"
     >
         <defs>
             <linearGradient id="risk-arc" x1="0" y1="1" x2="1" y2="0">

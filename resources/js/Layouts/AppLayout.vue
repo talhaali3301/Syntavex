@@ -14,8 +14,8 @@ const navItems: NavItem[] = [
     { label: 'Cover', href: '/' },
     { label: 'Command Centre', href: '/dashboard' },
     { label: 'Runs', href: '/runs' },
-    { label: 'Telemetry', note: 'Telemetry — not built yet' },
-    { label: 'Approvals', note: 'Approvals — not built yet' },
+    { label: 'Telemetry', note: 'Telemetry is not built yet' },
+    { label: 'Approvals', note: 'Approvals is not built yet' },
     { label: 'Review Queue', href: '/reviews' },
 ];
 
@@ -84,7 +84,7 @@ const ACTIVE =
 
 const labelFor = (item: NavItem): string => {
     if (item.label === 'Review Queue' && pendingReviews.value > 0) {
-        return `${item.label} — ${pendingReviews.value} awaiting review`;
+        return `${item.label}, ${pendingReviews.value} awaiting review`;
     }
 
     return item.note ?? item.label;
@@ -255,8 +255,8 @@ const classesFor = (item: NavItem): string => {
             <button
                 type="button"
                 disabled
-                title="Settings — not built yet"
-                aria-label="Settings — not built yet"
+                title="Settings is not built yet"
+                aria-label="Settings is not built yet"
                 :class="`${TILE} ${UNLINKED}`"
             >
                 <svg
@@ -280,7 +280,7 @@ const classesFor = (item: NavItem): string => {
                     class="grid h-[34px] w-[34px] cursor-pointer place-items-center rounded-full bg-[linear-gradient(145deg,#8B7CFF,#2DE2E6)] font-display text-xs font-semibold text-[#061020] shadow-[0_0_18px_rgba(139,124,255,0.4)] transition duration-200 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-navy-base"
                     :class="onProfile ? 'ring-2 ring-accent-cyan ring-offset-2 ring-offset-navy-base' : ''"
                     :aria-current="onProfile ? 'page' : undefined"
-                    :aria-label="accountName ? `Profile — ${accountName}` : 'Profile'"
+                    :aria-label="accountName ? `Profile, ${accountName}` : 'Profile'"
                 >
                     {{ initials }}
                 </Link>
@@ -291,7 +291,7 @@ const classesFor = (item: NavItem): string => {
                     as="button"
                     type="button"
                     :class="`${TILE} ${SIGN_OUT}`"
-                    :aria-label="accountName ? `Log out — ${accountName}` : 'Log out'"
+                    :aria-label="accountName ? `Log out, ${accountName}` : 'Log out'"
                     title="Log out"
                 >
                     <svg

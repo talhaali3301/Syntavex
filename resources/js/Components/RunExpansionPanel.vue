@@ -38,9 +38,9 @@ const RISK_TEXT: Record<StatusTone, string> = {
                         <li
                             class="h-[9px] w-[9px] shrink-0 rounded-full"
                             :class="DOT[step.tone]"
-                            :title="`${index + 1}. ${step.name} — ${step.status}`"
+                            :title="`${index + 1}. ${step.name}, ${step.status}`"
                         >
-                            <span class="sr-only">{{ step.name }} — {{ step.status }}</span>
+                            <span class="sr-only">{{ step.name }}, {{ step.status }}</span>
                         </li>
                         <li
                             v-if="index < expansion.trace.length - 1"

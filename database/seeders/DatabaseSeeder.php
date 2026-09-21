@@ -307,7 +307,7 @@ class DatabaseSeeder extends Seeder
                     'confidence' => 0.94,
                     'decision' => 'approve',
                     'rationale' => 'Verified 47-minute platform outage on '.$outageDate.' affecting this account. Enterprise tier with low churn risk and a clean refund history; goodwill credit is proportionate to the SLA breach.',
-                    'drafted_apology' => "Hi Dana — you're right, and I'm sorry. Our API was unavailable for 47 minutes yesterday, which is squarely on us and well outside the uptime we commit to on your Enterprise plan. I've put through a $120 credit to cover the affected window; it should land on your next invoice. The root cause has been fixed and I'm happy to share the incident write-up if useful.",
+                    'drafted_apology' => "Hi Dana, you're right, and I'm sorry. Our API was unavailable for 47 minutes yesterday, which is squarely on us and well outside the uptime we commit to on your Enterprise plan. I've put through a $120 credit to cover the affected window; it should land on your next invoice. The root cause has been fixed and I'm happy to share the incident write-up if useful.",
                     'policy_references' => ['refund-policy-v4 §3.2', 'sla-enterprise §1.4'],
                 ],
             ),
@@ -334,7 +334,7 @@ class DatabaseSeeder extends Seeder
         return [
             $this->step('Zendesk refund request received', 'webhook', 'completed', 286, null,
                 ['source' => 'zendesk.webhook', 'event' => 'refund.requested'],
-                ['customer_id' => 'CUS-7734', 'requested_amount' => 65.00, 'currency' => 'USD', 'reason' => 'Goodwill — repeated onboarding friction', 'ticket_id' => null],
+                ['customer_id' => 'CUS-7734', 'requested_amount' => 65.00, 'currency' => 'USD', 'reason' => 'Goodwill for repeated onboarding friction', 'ticket_id' => null],
             ),
             $this->step('Fetch account context (HubSpot)', 'retrieval', 'completed', 1042, 1180,
                 ['customer_id' => 'CUS-7734'],
@@ -401,8 +401,8 @@ class DatabaseSeeder extends Seeder
 
         [$risk, $summary] = match ($scenario) {
             'flagship' => ['critical', 'Agent authorised a $120 refund above the $100 policy ceiling'],
-            'goodwill_no_ticket' => ['medium', 'Goodwill credit of $65 issued with no linked support ticket — policy requires a ticket reference before payout.'],
-            'low_confidence_downgrade' => ['low', 'Low-confidence (0.42) escalation tier downgrade from P1 to P3 on an Enterprise account — informational review.'],
+            'goodwill_no_ticket' => ['medium', 'Goodwill credit of $65 issued with no linked support ticket. Policy requires a ticket reference before payout.'],
+            'low_confidence_downgrade' => ['low', 'Low-confidence (0.42) escalation tier downgrade from P1 to P3 on an Enterprise account. Informational review.'],
         };
 
         $this->persist(new ApprovalRequest([

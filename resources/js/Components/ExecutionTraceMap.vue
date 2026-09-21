@@ -245,7 +245,7 @@ const selected = computed(() => points.value.find((point) => point.selected));
                     @click="emit('select', point)"
                 >
                     <title>
-                        {{ point.order_label }} · {{ point.name }} — {{ point.status }} ·
+                        {{ point.order_label }} · {{ point.name }}, {{ point.status }} ·
                         {{ point.duration_label }}
                     </title>
                 </circle>

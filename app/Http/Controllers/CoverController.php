@@ -281,7 +281,7 @@ class CoverController extends Controller
             'orbits' => collect($nodes)->pluck('orbit')->unique()->values()->all(),
             'core_display' => number_format($total),
             'caption' => $nodes === []
-                ? 'No workflows seeded — the graph fills as runs arrive'
+                ? 'No workflows seeded. The graph fills as runs arrive'
                 : $count.' workflow'.($count === 1 ? '' : 's').' orbiting · sized by run volume',
         ];
     }

@@ -287,7 +287,7 @@ class RunInspectorResource extends JsonResource
         }
 
         if ($step->status === 'pending') {
-            $lines[] = ['label' => '›', 'text' => 'held — not executed', 'tone' => 'warn'];
+            $lines[] = ['label' => '›', 'text' => 'held, not executed', 'tone' => 'warn'];
         }
 
         return $lines;
@@ -466,7 +466,7 @@ class RunInspectorResource extends JsonResource
     {
         if ($approval === null) {
             return $this->error_message
-                ?? 'No policy gate was tripped — this run completed under automation.';
+                ?? 'No policy gate was tripped. This run completed under automation.';
         }
 
         $parts = [];
