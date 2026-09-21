@@ -26,6 +26,24 @@
         @apply text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white/40;
     }
 
+    /* Decision Graph runs: a dot is too small a hit area on its own. */
+    .graph-node {
+        @apply cursor-pointer outline-none;
+    }
+
+    .graph-node-hit {
+        stroke: transparent;
+        transition: stroke 150ms ease;
+    }
+
+    .graph-node:hover .graph-node-hit {
+        stroke: rgb(255 255 255 / 0.35);
+    }
+
+    .graph-node:focus-visible .graph-node-hit {
+        stroke: #2de2e6;
+    }
+
     .field-label {
         @apply block text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-ink-600;
     }

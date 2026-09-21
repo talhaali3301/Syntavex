@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { DecisionGraphData, StatusTone } from '@/types';
+import type { DecisionGraphData, DecisionGraphNode, StatusTone } from '@/types';
+import { router } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 const props = defineProps<{
@@ -78,6 +79,12 @@ const TONE_DOT: Record<StatusTone, string> = {
 };
 
 const callout = computed(() => props.graph.callout);
+
+const plotted = computed(() => props.graph.clusters.length > 0);
+
+const openRun = (node: DecisionGraphNode): void => {
+    router.visit(`/runs/${node.id}`);
+};
 </script>
 
 <template>
@@ -85,12 +92,12 @@ const callout = computed(() => props.graph.callout);
         <header class="relative flex flex-wrap items-start justify-between gap-3">
             <div>
                 <h2 id="decision-graph-heading" class="panel-heading">Decision Graph</h2>
-                <p class="mt-0.5 text-xs text-white/40">
+                <p v-if="plotted" class="mt-0.5 text-xs text-white/40">
                     Runs clustered by workflow · distance from core encodes risk
                 </p>
             </div>
 
-            <ul class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <ul v-if="plotted" class="flex flex-wrap items-center gap-x-4 gap-y-1">
                 <li
                     v-for="entry in graph.legend"
                     :key="entry.status"
@@ -108,7 +115,37 @@ const callout = computed(() => props.graph.callout);
         </header>
 
         <div ref="frame" class="relative mt-3 min-h-0 flex-1">
+            <div
+                v-if="!plotted"
+                class="flex h-full flex-col items-center justify-center gap-3 text-center"
+            >
+                <svg
+                    class="h-14 w-14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="rgba(45,226,230,0.45)"
+                    stroke-width="1.1"
+                    aria-hidden="true"
+                >
+                    <circle cx="12" cy="12" r="2.4" />
+                    <circle cx="5" cy="6" r="1.8" />
+                    <circle cx="19" cy="7" r="1.8" />
+                    <circle cx="6.5" cy="18" r="1.8" />
+                    <circle cx="18" cy="17.5" r="1.8" stroke="rgba(139,124,255,0.7)" />
+                    <path d="M6.4 7.1 10 10.4M17.6 8.1 14 10.6M7.4 16.6 10.4 13.7M16.7 16.2 13.8 13.6" stroke-dasharray="2 3" />
+                </svg>
+
+                <p class="font-display text-sm font-semibold text-white">
+                    No runs in this window
+                </p>
+                <p class="max-w-[38ch] text-xs leading-relaxed text-white/40">
+                    Clusters are plotted from the runs inside the selected observation
+                    window. Widen the window to see the fleet take shape.
+                </p>
+            </div>
+
             <svg
+                v-else
                 :viewBox="viewBox"
                 class="tone-vars h-full w-full"
                 preserveAspectRatio="xMidYMid meet"
@@ -205,20 +242,39 @@ const callout = computed(() => props.graph.callout);
                             stroke-opacity="0.7"
                             stroke-width="1.5"
                         />
-                        <circle
-                            :cx="cluster.core.x"
-                            :cy="cluster.core.y"
-                            :r="cluster.core.r"
-                            :fill="TONE_VAR[cluster.core.tone]"
-                            stroke="rgba(255,255,255,0.9)"
-                            stroke-width="1.5"
-                            filter="url(#node-glow)"
+                        <g
+                            role="link"
+                            tabindex="0"
+                            class="graph-node"
+                            :aria-label="`Open run ${cluster.core.run_key} in the Run Inspector`"
+                            @click="openRun(cluster.core)"
+                            @keydown.enter.prevent="openRun(cluster.core)"
+                            @keydown.space.prevent="openRun(cluster.core)"
                         >
-                            <title>
-                                #{{ cluster.core.run_key }} · {{ cluster.core.status }} ·
-                                {{ cluster.core.cost_label }} · flagged
-                            </title>
-                        </circle>
+                            <circle
+                                :cx="cluster.core.x"
+                                :cy="cluster.core.y"
+                                :r="cluster.core.r"
+                                :fill="TONE_VAR[cluster.core.tone]"
+                                stroke="rgba(255,255,255,0.9)"
+                                stroke-width="1.5"
+                                filter="url(#node-glow)"
+                            >
+                                <title>
+                                    #{{ cluster.core.run_key }} · {{ cluster.core.status }} ·
+                                    {{ cluster.core.cost_label }} · flagged
+                                </title>
+                            </circle>
+
+                            <circle
+                                class="graph-node-hit"
+                                :cx="cluster.core.x"
+                                :cy="cluster.core.y"
+                                :r="cluster.core.r + 13"
+                                fill="transparent"
+                                stroke-width="2"
+                            />
+                        </g>
                         <text
                             :x="cluster.core.x"
                             :y="cluster.core.y + cluster.core.r + 18"
@@ -237,22 +293,42 @@ const callout = computed(() => props.graph.callout);
                         fill="rgba(255,255,255,0.55)"
                     />
 
-                    <circle
+                    <g
                         v-for="node in cluster.nodes"
                         :key="node.id"
-                        :cx="node.x"
-                        :cy="node.y"
-                        :r="node.r"
-                        :fill="TONE_VAR[node.tone]"
-                        :fill-opacity="node.at_risk ? 1 : 0.85"
-                        stroke="transparent"
-                        stroke-width="1.5"
-                        :filter="node.at_risk ? 'url(#node-glow)' : undefined"
+                        role="link"
+                        tabindex="0"
+                        class="graph-node"
+                        :aria-label="`Open run ${node.run_key} in the Run Inspector`"
+                        @click="openRun(node)"
+                        @keydown.enter.prevent="openRun(node)"
+                        @keydown.space.prevent="openRun(node)"
                     >
-                        <title>
-                            #{{ node.run_key }} · {{ node.status }} · {{ node.cost_label }}
-                        </title>
-                    </circle>
+                        <circle
+                            :cx="node.x"
+                            :cy="node.y"
+                            :r="node.r"
+                            :fill="TONE_VAR[node.tone]"
+                            :fill-opacity="node.at_risk ? 1 : 0.85"
+                            stroke="transparent"
+                            stroke-width="1.5"
+                            :filter="node.at_risk ? 'url(#node-glow)' : undefined"
+                        >
+                            <title>
+                                #{{ node.run_key }} · {{ node.status }} · {{ node.cost_label }}
+                            </title>
+                        </circle>
+
+                        <!-- Widens the pointer/focus target past the 4-7px dot. -->
+                        <circle
+                            class="graph-node-hit"
+                            :cx="node.x"
+                            :cy="node.y"
+                            :r="node.r + 7"
+                            fill="transparent"
+                            stroke-width="2"
+                        />
+                    </g>
 
                     <text
                         :x="cluster.x"

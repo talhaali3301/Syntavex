@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ApprovalRequest;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,6 +35,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Drives the rail badge on Review Queue. Counted the same way the
+            // desk itself counts, so the two can never disagree.
+            'pendingReviews' => fn (): int => $request->user() === null
+                ? 0
+                : ApprovalRequest::query()->where('status', 'pending')->count(),
         ];
     }
 }

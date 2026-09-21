@@ -348,6 +348,24 @@ class CommandCentreTest extends TestCase
         $this->assertSame('review', $flagship['tone']);
     }
 
+    public function test_the_rail_badge_count_tracks_the_pending_approvals(): void
+    {
+        $response = $this->actingAs($this->user)->get('/dashboard');
+
+        $expected = ApprovalRequest::query()->where('status', 'pending')->count();
+
+        $this->assertGreaterThan(0, $expected);
+        $response->assertInertia(
+            fn (AssertableInertia $page) => $page->where('pendingReviews', $expected)
+        );
+
+        ApprovalRequest::query()->update(['status' => 'approved']);
+
+        $this->actingAs($this->user)->get('/dashboard')->assertInertia(
+            fn (AssertableInertia $page) => $page->where('pendingReviews', 0)
+        );
+    }
+
     /**
      * Total runs drawn on the graph, cores included.
      *

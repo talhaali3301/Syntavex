@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RunListItem, RunStatus, StatusTone } from '@/types';
+import { Link, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{
@@ -44,6 +45,11 @@ const DOT: Record<StatusTone, string> = {
     review: 'bg-status-review',
     critical: 'bg-status-critical',
     info: 'bg-status-info',
+};
+
+/** The run key is the keyboard-reachable link; the row is the pointer target. */
+const open = (id: number): void => {
+    router.visit(`/runs/${id}`);
 };
 </script>
 
@@ -102,10 +108,18 @@ const DOT: Record<StatusTone, string> = {
                     <tr
                         v-for="run in visibleRuns"
                         :key="run.id"
-                        class="border-b border-white/[0.06] transition duration-150 last:border-0 hover:bg-white/[0.035]"
+                        class="cursor-pointer border-b border-white/[0.06] transition duration-150 last:border-0 hover:bg-white/[0.035]"
+                        @click="open(run.id)"
                     >
                         <td class="py-3 pr-4">
-                            <span class="font-mono text-sm text-white">#{{ run.run_key }}</span>
+                            <Link
+                                :href="`/runs/${run.id}`"
+                                class="rounded font-mono text-sm text-white transition duration-150 hover:text-accent-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan"
+                                :aria-label="`Open run ${run.run_key} in the Run Inspector`"
+                                @click.stop
+                            >
+                                #{{ run.run_key }}
+                            </Link>
                         </td>
                         <td class="py-3 pr-4 text-sm text-white/75">{{ run.workflow }}</td>
                         <td class="py-3 pr-4">

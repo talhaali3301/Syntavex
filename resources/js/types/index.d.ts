@@ -11,6 +11,8 @@ export type PageProps<
     auth: {
         user: User;
     };
+    /** Pending approvals across the fleet — drives the Review Queue rail badge. */
+    pendingReviews: number;
 };
 
 /* -------------------------------------------------------------------------

@@ -38,6 +38,9 @@ const currentLabel = computed(() => {
 
 const accountName = computed(() => page.props.auth?.user?.name ?? '');
 
+/** Only the Review Queue carries a badge, and only off a real pending count. */
+const pendingReviews = computed(() => page.props.pendingReviews ?? 0);
+
 /** The Cover sits on a public route, so the rail has to render signed out too. */
 const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
 
@@ -78,6 +81,14 @@ const SIGN_OUT =
 /** Mockup active tile: cyan wash, cyan hairline border and an inner cyan bloom. */
 const ACTIVE =
     'border-accent-cyan/[0.32] bg-[linear-gradient(145deg,rgba(45,226,230,0.16),rgba(45,226,230,0.04))] text-accent-cyan shadow-[inset_0_0_18px_rgba(45,226,230,0.18)]';
+
+const labelFor = (item: NavItem): string => {
+    if (item.label === 'Review Queue' && pendingReviews.value > 0) {
+        return `${item.label} — ${pendingReviews.value} awaiting review`;
+    }
+
+    return item.note ?? item.label;
+};
 
 const classesFor = (item: NavItem): string => {
     if (currentLabel.value === item.label) {
@@ -144,8 +155,8 @@ const classesFor = (item: NavItem): string => {
                     :href="item.href"
                     :type="item.href ? undefined : 'button'"
                     :disabled="item.href ? undefined : true"
-                    :title="item.note"
-                    :aria-label="item.note ?? item.label"
+                    :title="labelFor(item)"
+                    :aria-label="labelFor(item)"
                     :aria-current="currentLabel === item.label ? 'page' : undefined"
                     :class="classesFor(item)"
                 >
@@ -205,7 +216,19 @@ const classesFor = (item: NavItem): string => {
                         <circle cx="12" cy="17.5" r="2.6" />
                         <path d="M7.9 8.3 11 15.4M16.1 8.3 13 15.4M8.6 6.5h6.8" />
                     </svg>
-                    <template v-else-if="item.label === 'Approvals'">
+                    <svg
+                        v-else-if="item.label === 'Approvals'"
+                        class="h-[19px] w-[19px]"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        aria-hidden="true"
+                    >
+                        <path d="M12 3 20 6v6c0 4.4-3.3 7.8-8 9-4.7-1.2-8-4.6-8-9V6z" />
+                        <path d="m9 12 2.2 2.2L15.5 10" />
+                    </svg>
+                    <template v-else>
                         <svg
                             class="h-[19px] w-[19px]"
                             viewBox="0 0 24 24"
@@ -214,26 +237,16 @@ const classesFor = (item: NavItem): string => {
                             stroke-width="1.6"
                             aria-hidden="true"
                         >
-                            <path d="M12 3 20 6v6c0 4.4-3.3 7.8-8 9-4.7-1.2-8-4.6-8-9V6z" />
-                            <path d="m9 12 2.2 2.2L15.5 10" />
+                            <rect x="3" y="4" width="18" height="16" rx="2.4" />
+                            <path d="M3 9h18M8 4v16" />
                         </svg>
                         <span
-                            class="absolute right-[7px] top-[7px] h-[7px] w-[7px] rounded-full bg-status-review shadow-[0_0_10px_#F8C65D]"
-                            aria-hidden="true"
-                        />
+                            v-if="pendingReviews > 0"
+                            class="absolute -right-0.5 -top-0.5 grid h-[17px] min-w-[17px] place-items-center rounded-full border border-navy-base bg-status-review px-1 font-mono text-[9.5px] font-semibold leading-none text-[#3B2A05] shadow-[0_0_10px_rgba(248,198,93,0.55)]"
+                        >
+                            {{ pendingReviews > 99 ? '99+' : pendingReviews }}
+                        </span>
                     </template>
-                    <svg
-                        v-else
-                        class="h-[19px] w-[19px]"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.6"
-                        aria-hidden="true"
-                    >
-                        <rect x="3" y="4" width="18" height="16" rx="2.4" />
-                        <path d="M3 9h18M8 4v16" />
-                    </svg>
                 </component>
             </nav>
 
