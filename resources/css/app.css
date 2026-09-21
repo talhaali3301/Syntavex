@@ -10,11 +10,6 @@
 }
 
 @layer components {
-    /*
-     * One surface for every panel in the app. Radius, hairline, wash, blur and
-     * lift are fixed here so screens never re-invent them; only padding and
-     * accent glows are left to the caller.
-     */
     .glass-panel {
         @apply relative overflow-hidden rounded-2xl border border-[rgba(160,205,245,0.12)] bg-[rgba(10,20,35,0.72)] backdrop-blur-[18px];
         box-shadow:
@@ -22,8 +17,6 @@
             0 18px 44px rgba(2, 8, 18, 0.5);
     }
 
-    /* Feature surfaces — the ones a screen is built around — sit on a tinted
-       wash and lift further off the page than the panels around them. */
     .glass-panel-feature {
         @apply border-[rgba(160,222,245,0.18)];
         background-image: linear-gradient(
@@ -37,13 +30,9 @@
             0 22px 52px rgba(2, 8, 18, 0.6);
     }
 
-    /* Table rows scroll behind their own sticky header, so that surface is
-       opaque rather than blurred. */
     .glass-panel-solid {
         @apply bg-panel-base backdrop-blur-none;
     }
-
-    /* ---- Type scale -------------------------------------------------- */
 
     .page-title {
         @apply truncate font-display text-[19px] font-semibold -tracking-[0.015em] text-ink-100;
@@ -61,12 +50,10 @@
         @apply font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-700;
     }
 
-    /* The explanatory line that sits under a panel heading. */
     .panel-note {
         @apply text-xs text-ink-700;
     }
 
-    /* Decision Graph runs: a dot is too small a hit area on its own. */
     .graph-node {
         @apply cursor-pointer outline-none;
     }
@@ -83,8 +70,6 @@
     .graph-node:focus-visible .graph-node-hit {
         stroke: #2de2e6;
     }
-
-    /* ---- Forms and buttons ------------------------------------------- */
 
     .field-label {
         @apply block text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-ink-600;
@@ -116,10 +101,6 @@
 }
 
 @layer utilities {
-    /*
-     * Mirrors the `status.*` and `accent.*` tokens in tailwind.config.js so SVG
-     * fills/strokes can reference the same palette as the Tailwind classes.
-     */
     .tone-vars {
         --tone-completed: #55d98b;
         --tone-review: #f8c65d;
@@ -151,11 +132,6 @@
         animation: orbit-drift 72s linear infinite;
     }
 
-    /*
-     * Freeze Frame: the intercepted action is shown as a stilled screen —
-     * evidence drained of colour, the card itself ringed by a crimson halo
-     * that keeps breathing so it never reads as merely disabled.
-     */
     .freeze-halo::before {
         content: '';
         position: absolute;

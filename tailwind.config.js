@@ -1,7 +1,6 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 
-/** @type {import('tailwindcss').Config} */
 export default {
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
@@ -28,7 +27,6 @@ export default {
                     critical: '#F26C78',
                     info: '#5AA8FF',
                 },
-                /* Runs Explorer (Phase 4) text + surface ramp, from the mockup. */
                 ink: {
                     100: '#EAF3FB',
                     200: '#DCE8F5',
